@@ -1,0 +1,56 @@
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="app_name">Popular Movies</string>
+
+    <!-- Strings related to Detail Activity -->
+    <string name="title_activity_detail">Movie Details</string>
+    <string name="detail_button_mark_as_favorite">Mark as Favorite</string>
+
+    <!-- Strings related to Settings -->
+    <string name="title_activity_settings">Settings</string>
+    <string name="action_settings">Settings</string>
+
+    <string name="no_wifi_message">Please connect to WI-FI to load the latest movie details.</string>
+
+    <string name="detail_movie_user_rating"><xliff:g id="rating" example="8.6">%1$.1f</xliff:g> / 10</string>
+
+    <!-- Strings related to "Sort By" setting options -->
+
+    <!-- Label for the sort by preference [CHAR LIMIT=30] -->
+    <string name="pref_sort_by_label">Sort by</string>
+
+    <!-- Label for metric option in temperature unit preference [CHAR LIMIT=25] -->
+    <string name="pref_sort_by_label_popular">Popularity</string>
+
+    <!-- Label for imperial option in temperature unit preference [CHAR LIMIT=25] -->
+    <string name="pref_sort_by_label_top_rated">Top Rated</string>
+
+    <!-- Label for imperial option in temperature unit preference [CHAR LIMIT=25] -->
+    <string name="pref_sort_by_label_latest">Latest</string>
+
+    <!-- Label for imperial option in temperature unit preference [CHAR LIMIT=25] -->
+    <string name="pref_sort_by_label_now_playing">Now Playing</string>
+
+    <!-- Label for imperial option in temperature unit preference [CHAR LIMIT=25] -->
+    <string name="pref_sort_by_label_upcoming">Upcoming</string>
+
+    <!-- Key name for temperature unit preference in SharedPreferences [CHAR LIMIT=NONE] -->
+    <string name="pref_sort_by_key" translatable="false">sort_by</string>
+
+    <!-- Value in SharedPreferences for metric temperature unit option [CHAR LIMIT=NONE] -->
+    <string name="pref_sort_by_popular" translatable="false">popular</string>
+
+    <!-- Value in SharedPreferences for imperial temperature unit option [CHAR LIMIT=NONE] -->
+    <string name="pref_sort_by_top_rated" translatable="false">top_rated</string>
+
+    <!-- Value in SharedPreferences for imperial temperature unit option [CHAR LIMIT=NONE] -->
+    <string name="pref_sort_by_latest" translatable="false">latest</string>
+
+    <!-- Value in SharedPreferences for imperial temperature unit option [CHAR LIMIT=NONE] -->
+    <string name="pref_sort_by_now_playing" translatable="false">now_playing</string>
+
+    <!-- Value in SharedPreferences for imperial temperature unit option [CHAR LIMIT=NONE] -->
+    <string name="pref_sort_by_upcoming" translatable="false">upcoming</string>
+    <string name="loading">Loading</string>
+    <string name="loading_movie_list">Retrieving list of movies</string>
+
+</resources>
