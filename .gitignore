@@ -1,9 +1,28 @@
-*.iml
-.gradle
-/local.properties
-/.idea/workspace.xml
-/.idea/libraries
+# Android built artifacts
+*.apk
+*.ap_
+*.dex
+
+# Java build artifacts class files
+*.class
+
+
+# other generated files
+bin/
+gen/
+build/
+
+# local configuration file (for Android sdk path, etc)
+local.properties
+
+# OSX files
 .DS_Store
-/build
+
+# Android Studio
+*.iml
+.idea
+.gradle
+
+# MISC
 /captures
 .externalNativeBuild
