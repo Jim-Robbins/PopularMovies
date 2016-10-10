@@ -1,14 +1,31 @@
-package com.android.nanodegree.jrobbins.popularmovies.app;
+package com.android.nanodegree.jrobbins.popularmovies.app.services;
 
+import android.app.IntentService;
+import android.content.ContentValues;
+import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
+import android.text.TextUtils;
 import android.util.Log;
+
+import com.android.nanodegree.jrobbins.popularmovies.app.BuildConfig;
+import com.android.nanodegree.jrobbins.popularmovies.app.data.MoviesContract;
+import com.android.nanodegree.jrobbins.popularmovies.app.models.Movie;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Vector;
 
 /**
  * Class specifically designed to parse the results from The Movie Database API
@@ -16,8 +33,9 @@ import java.util.List;
  * Created by jim.robbins on 9/8/16.
  */
 
-class MovieDataParser {
-    private static final String LOG_TAG = MovieDataParser.class.getSimpleName();
+public class MovieDBService extends IntentService {
+    private static final String LOG_TAG = MovieDBService.class.getSimpleName();
+    public static final String LIST_QUERY_EXTRA = "lqe";
 
     private static String MOVIE_DB_API_URL = "http://api.themoviedb.org/3/movie";
     private static String MOVIE_DB_IMG_URL = "http://image.tmdb.org/t/p/";
@@ -31,8 +49,6 @@ class MovieDataParser {
     public static String MOVIE_DB_IMG_SIZE_780 = "w780";
     public static String MOVIE_DB_IMG_SIZE_FULL = "original";
 
-    public static String REQUEST_METHOD_GET = "GET";
-
     private String MOVIE_DB_KEY_RESULTS = "results";
     private String MOVIE_DB_KEY_ID = "id";
     private String MOVIE_DB_KEY_TITLE = "title";
@@ -44,6 +60,88 @@ class MovieDataParser {
     private String MOVIE_DB_KEY_VIDEO = "video";
     private String MOVIE_DB_KEY_GENRE_IDS = "genre_ids";
 
+    public MovieDBService() {
+        super(LOG_TAG);
+    }
+
+    private List<Integer> mMovieIds;
+
+    @Override
+    protected void onHandleIntent(Intent intent) {
+        Log.d(LOG_TAG, "onHandleIntent");
+        String listQuery = intent.getStringExtra(LIST_QUERY_EXTRA);
+
+        Log.d(LOG_TAG, "onHandleIntent:"+ listQuery);
+
+        // These two need to be declared outside the try/catch
+        // so that they can be closed in the finally block.
+        HttpURLConnection urlConnection = null;
+        BufferedReader reader = null;
+
+        // Will contain the raw JSON response as a string.
+        String movieDataJsonStr = null;
+
+        try {
+            // Create the request to TheMovieDB API, and open the connection
+            String baseUrl = MovieDBService.getMovieListRequestUrl(listQuery);
+            Log.d(LOG_TAG,baseUrl);
+
+            URL url = new URL(baseUrl);
+
+            // Create the request to OpenWeatherMap, and open the connection
+            urlConnection = (HttpURLConnection) url.openConnection();
+            urlConnection.setRequestMethod("GET");
+            urlConnection.connect();
+
+            // Read the input stream into a String
+            InputStream inputStream = urlConnection.getInputStream();
+            StringBuffer buffer = new StringBuffer();
+            if (inputStream == null) {
+                // Nothing to do.
+                return;
+            }
+            reader = new BufferedReader(new InputStreamReader(inputStream));
+
+            String line;
+            while ((line = reader.readLine()) != null) {
+                // Since it's JSON, adding a newline isn't necessary (it won't affect parsing)
+                // But it does make debugging a *lot* easier if you print out the completed
+                // buffer for debugging.
+                buffer.append(line + "\n");
+            }
+
+            if (buffer.length() == 0) {
+                // Stream was empty.  No point in parsing.
+                return;
+            }
+            movieDataJsonStr = buffer.toString();
+            getMovieDataFromJson(movieDataJsonStr);
+        } catch (IOException e) {
+            Log.e(LOG_TAG, "Error ", e);
+            // If the code didn't successfully get the weather data, there's no point in attempting
+            // to parse it.
+        } finally {
+            if (urlConnection != null) {
+                urlConnection.disconnect();
+            }
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (final IOException e) {
+                    Log.e(LOG_TAG, "Error closing stream", e);
+                }
+            }
+        }
+        return;
+    }
+
+    /**
+     *  Construct the URL for TheMoiveDB query
+     *  Possible parameters are avaiable at TMDB's API page, at
+     *  https://www.themoviedb.org/documentation/api
+     * @param sortByPath
+     * @return
+     */
     public static String getMovieListRequestUrl(String sortByPath)
     {
         Uri builtUri = Uri.parse(MOVIE_DB_API_URL).buildUpon()
@@ -60,15 +158,34 @@ class MovieDataParser {
                 .build();
         return  builtUri.toString() + posterPath;
     }
+
+    public Cursor getAllEntries() {
+        Uri allMoviesUri = MoviesContract.MovieEntry.buildMoviesUri();
+        String[] MOVIES_COLUMNS = {
+                MoviesContract.MovieEntry.COLUMN_MOVIE_ID
+        };
+
+        Cursor cursor = this.getContentResolver().query(
+                allMoviesUri,
+                MOVIES_COLUMNS,
+                null,
+                null,
+                null
+        );
+
+        return cursor;
+    }
+
     /**
      * Parse out raw JSON data from The Movie DB api into usable Movie items
      * @param moviesListJsonStr The raw JSON string returned from the api
      * @return a List of type Movie
      */
-    public List<Movie> getMovieDataFromJson(String moviesListJsonStr) {
+    public void getMovieDataFromJson(String moviesListJsonStr) {
 
         // Convert raw json string to JSON Object
         JSONObject moviesListJSONObj;
+        mMovieIds = new ArrayList<Integer>();
 
         try {
             moviesListJSONObj = new JSONObject(moviesListJsonStr);
@@ -77,13 +194,11 @@ class MovieDataParser {
             if (!moviesListJSONObj.isNull(MOVIE_DB_KEY_RESULTS))
             {
                 //Create our array list and populate it
-                return populateMovieList(moviesListJSONObj.getJSONArray(MOVIE_DB_KEY_RESULTS));
+                populateMovieDB(moviesListJSONObj.getJSONArray(MOVIE_DB_KEY_RESULTS));
             }
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
-        return null;
     }
 
     /**
@@ -91,10 +206,13 @@ class MovieDataParser {
      * @param jsonArray The JSON array containing the list of movie results
      * @return List of type Movie
      */
-    private ArrayList<Movie> populateMovieList(JSONArray jsonArray) {
+    private void populateMovieDB(JSONArray jsonArray) {
 
         JSONObject moviesJson;
         ArrayList<Movie> movieArrayList = new ArrayList<>(jsonArray.length());
+
+        // Insert the new weather information into the database
+        Vector<ContentValues> cVVector = new Vector<ContentValues>(jsonArray.length());
 
         // Process each result in json array, decode and convert to business object
         for (int i = 0; i < jsonArray.length(); i++) {
@@ -105,24 +223,30 @@ class MovieDataParser {
                 continue;
             }
 
-            Movie movie = parseJSONIntoObject(moviesJson);
-            if (movie != null) {
-                Log.v(LOG_TAG, movie.getTitle());
-                movieArrayList.add(movie);
-            }
+            ContentValues movieValues = parseJSONIntoObject(moviesJson);
+            cVVector.add(movieValues);
         }
 
-        return movieArrayList;
+        int inserted = 0;
+        // add to database
+        if ( cVVector.size() > 0 ) {
+            ContentValues[] cvArray = new ContentValues[cVVector.size()];
+            cVVector.toArray(cvArray);
+            this.getContentResolver().bulkInsert(MoviesContract.MovieEntry.CONTENT_URI, cvArray);
+        }
+
+        Log.d(LOG_TAG, "MovieDB Service Complete. " + cVVector.size() + " Inserted");
     }
 
     /**
-     * Parse the json result item into a Movie
+     * Parse the json result item into contentValues Object
      * @param movieJSONObj  JSONObject of a particular movie object from the results list
-     * @return Movie object created from the JSON data
+     * @return contentValues created from the JSON data
      */
-    private Movie parseJSONIntoObject(JSONObject movieJSONObj)
+    private ContentValues parseJSONIntoObject(JSONObject movieJSONObj)
     {
         int mId = getJSONIntValue(movieJSONObj, MOVIE_DB_KEY_ID);
+        mMovieIds.add(mId);
         String mTitle = getJSONStringValue(movieJSONObj, MOVIE_DB_KEY_TITLE);
         String mPoster = getJSONStringValue(movieJSONObj, MOVIE_DB_KEY_POSTER_PATH);
         String mOverview = getJSONStringValue(movieJSONObj, MOVIE_DB_KEY_OVERVIEW);
@@ -131,8 +255,20 @@ class MovieDataParser {
         String mBackdropPath = getJSONStringValue(movieJSONObj, MOVIE_DB_KEY_BACKDROP_PATH);
         boolean mVideo = getJSONBoolValue(movieJSONObj, MOVIE_DB_KEY_VIDEO);
         List<String> mGenreIds = getJSONListValue(movieJSONObj, MOVIE_DB_KEY_GENRE_IDS);
+        String sGenreIds = TextUtils.join(",", mGenreIds);
 
-        return new Movie(mId, mTitle, mPoster, mOverview, mReleaseDate, mVoteAvg, mBackdropPath, mVideo, mGenreIds);
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(MoviesContract.MovieEntry.COLUMN_MOVIE_ID, mId);
+        contentValues.put(MoviesContract.MovieEntry.COLUMN_TITLE, mTitle);
+        contentValues.put(MoviesContract.MovieEntry.COLUMN_POSTER, mPoster);
+        contentValues.put(MoviesContract.MovieEntry.COLUMN_OVERVIEW, mOverview);
+        contentValues.put(MoviesContract.MovieEntry.COLUMN_RELEASE_DATE, mReleaseDate);
+        contentValues.put(MoviesContract.MovieEntry.COLUMN_VOTE_AVG, mVoteAvg);
+        contentValues.put(MoviesContract.MovieEntry.COLUMN_BACKDROP_PATH, mBackdropPath);
+        contentValues.put(MoviesContract.MovieEntry.COLUMN_HAS_VIDEO, mVideo);
+        contentValues.put(MoviesContract.MovieEntry.COLUMN_GENRE_IDS, sGenreIds);
+
+        return contentValues;
     }
 
     /**

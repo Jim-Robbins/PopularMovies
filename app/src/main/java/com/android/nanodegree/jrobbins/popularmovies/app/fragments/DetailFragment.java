@@ -1,4 +1,4 @@
-package com.android.nanodegree.jrobbins.popularmovies.app;
+package com.android.nanodegree.jrobbins.popularmovies.app.fragments;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -11,6 +11,10 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.android.nanodegree.jrobbins.popularmovies.app.BuildConfig;
+import com.android.nanodegree.jrobbins.popularmovies.app.services.MovieDBService;
+import com.android.nanodegree.jrobbins.popularmovies.app.models.Movie;
+import com.android.nanodegree.jrobbins.popularmovies.app.R;
 import com.squareup.picasso.Picasso;
 
 /**
@@ -42,7 +46,7 @@ public class DetailFragment extends Fragment {
                 final TextView titleTxt = (TextView) rootView.findViewById(R.id.textview_movie_title);
                 titleTxt.setText(movie.getTitle());
                 /* Something I am playing with for Stage 2
-                String backdropPath = MovieDataParser.getMoviePosterUrl(MovieDataParser.MOVIE_DB_IMG_SIZE_342, movie.getBackdropPath());
+                String backdropPath = MovieDBService.getMoviePosterUrl(MovieDBService.MOVIE_DB_IMG_SIZE_342, movie.getBackdropPath());
                 Picasso.with(getActivity())
                         .load(backdropPath)
                         .into(new Target(){
@@ -74,7 +78,7 @@ public class DetailFragment extends Fragment {
                     Picasso.with(getActivity()).setIndicatorsEnabled(true);
                     Picasso.with(getActivity()).setLoggingEnabled(true);
                 }
-                String posterPath = MovieDataParser.getMoviePosterUrl(MovieDataParser.MOVIE_DB_IMG_SIZE_154, movie.getPosterPathStr());
+                String posterPath = MovieDBService.getMoviePosterUrl(MovieDBService.MOVIE_DB_IMG_SIZE_154, movie.getPosterPathStr());
                 Picasso.with(getActivity())
                         .load(posterPath)
                         .fit()

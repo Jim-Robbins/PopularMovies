@@ -1,4 +1,4 @@
-package com.android.nanodegree.jrobbins.popularmovies.app;
+package com.android.nanodegree.jrobbins.popularmovies.app.models;
 
 import android.os.Parcel;
 import android.os.Parcelable;

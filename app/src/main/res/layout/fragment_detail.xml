@@ -9,7 +9,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:isScrollContainer="true"
-    tools:context=".DetailFragment">
+    tools:context=".fragments.DetailFragment">
     <TextView
         android:id="@+id/textview_movie_title"
         android:layout_width="match_parent"

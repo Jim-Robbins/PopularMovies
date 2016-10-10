@@ -1,4 +1,4 @@
-package com.android.nanodegree.jrobbins.popularmovies.app;
+package com.android.nanodegree.jrobbins.popularmovies.app.views.adapters;
 
 import android.app.Activity;
 import android.support.annotation.NonNull;
@@ -8,6 +8,10 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 
+import com.android.nanodegree.jrobbins.popularmovies.app.BuildConfig;
+import com.android.nanodegree.jrobbins.popularmovies.app.services.MovieDBService;
+import com.android.nanodegree.jrobbins.popularmovies.app.models.Movie;
+import com.android.nanodegree.jrobbins.popularmovies.app.R;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
@@ -19,8 +23,8 @@ import java.util.List;
  * https://github.com/udacity/android-custom-arrayadapter/blob/master/app/src/main/java/demo/example/com/customarrayadapter/AndroidFlavorAdapter.java
  */
 
-public class MovieAdapter extends ArrayAdapter<Movie> {
-    private static final String LOG_TAG = MovieAdapter.class.getSimpleName();
+public class MovieArrayAdapter extends ArrayAdapter<Movie> {
+    private static final String LOG_TAG = MovieArrayAdapter.class.getSimpleName();
     private Activity mContext;
     /**
      * Custom constructor (it doesn't mirror a superclass constructor).
@@ -30,7 +34,7 @@ public class MovieAdapter extends ArrayAdapter<Movie> {
      * @param context        The current context. Used to inflate the layout file.
      * @param movies       A List of Movie objects to display in a list
      */
-    public MovieAdapter(Activity context, List<Movie> movies) {
+    public MovieArrayAdapter(Activity context, List<Movie> movies) {
         // Here, we initialize the ArrayAdapter's internal storage for the context and the list.
         // Because this is a custom adapter for an ImageView, the adapter is not
         // going to use the second argument, so it can be any value.
@@ -60,7 +64,7 @@ public class MovieAdapter extends ArrayAdapter<Movie> {
             }
 
             ImageView posterView = (ImageView) convertView.findViewById(R.id.grid_item_movie_poster);
-            String posterPath = MovieDataParser.getMoviePosterUrl(MovieDataParser.MOVIE_DB_IMG_SIZE_185, movie.getPosterPathStr());
+            String posterPath = MovieDBService.getMoviePosterUrl(MovieDBService.MOVIE_DB_IMG_SIZE_185, movie.getPosterPathStr());
 
             //Use Picasso to load in the movie poster into the imageView
             if (BuildConfig.DEBUG) {
