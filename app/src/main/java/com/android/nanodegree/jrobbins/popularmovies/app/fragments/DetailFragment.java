@@ -17,16 +17,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.android.nanodegree.jrobbins.popularmovies.app.BuildConfig;
-import com.android.nanodegree.jrobbins.popularmovies.app.data.MoviesContract;
 import com.android.nanodegree.jrobbins.popularmovies.app.data.MoviesContract.MovieEntry;
 import com.android.nanodegree.jrobbins.popularmovies.app.services.MovieDataService;
-import com.android.nanodegree.jrobbins.popularmovies.app.models.Movie;
 import com.android.nanodegree.jrobbins.popularmovies.app.R;
-import com.android.nanodegree.jrobbins.popularmovies.app.utils.Utility;
 import com.squareup.picasso.Picasso;
-
-import static android.R.attr.x;
-import static com.android.nanodegree.jrobbins.popularmovies.app.R.id.container;
 
 /**
  * Display the movie detail information
@@ -116,7 +110,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         super.onActivityCreated(savedInstanceState);
     }
 
-    void onListTypeChanged( String newListType ) {
+    public void onListTypeChanged( String newListType ) {
         // replace the uri, since the location has changed
         Uri uri = mUri;
         if (null != uri) {

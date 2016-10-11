@@ -26,12 +26,29 @@ public class MainActivity extends AppCompatActivity implements MovieFragment.Cal
         super.onCreate(savedInstanceState);
         Stetho.initializeWithDefaults(this);
 
+        mSortBy = Utility.getPreferredMovieList(this);
+
         setContentView(R.layout.activity_main);
-        if (savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction()
-                    .add(R.id.container, new MovieFragment())
-                    .commit();
+
+        if (findViewById(R.id.movie_detail_container) != null) {
+            // The detail container view will be present only in the large-screen layouts
+            // (res/layout-sw600dp). If this view is present, then the activity should be
+            // in two-pane mode.
+            mTwoPane = true;
+
+            // In two-pane mode, show the detail view in this activity by
+            // adding or replacing the detail fragment using a
+            // fragment transaction.
+            if (savedInstanceState == null) {
+                getSupportFragmentManager().beginTransaction()
+                        .add(R.id.movie_detail_container, new DetailFragment(), DETAILFRAGMENT_TAG)
+                        .commit();
+            }
+        } else {
+            mTwoPane = false;
+            getSupportActionBar().setElevation(0f);
         }
+
     }
 
     @Override
@@ -68,37 +85,37 @@ public class MainActivity extends AppCompatActivity implements MovieFragment.Cal
         String sortBy = Utility.getPreferredMovieList( this );
         // update the location in our second pane using the fragment manager
         if (sortBy != null && !sortBy.equals(mSortBy)) {
-//            MovieFragment mf = (MovieFragment)getSupportFragmentManager().findFragmentById(R.id.fragment_main);
-//            if ( null != mf ) {
-//                mf.onListTypeChanged();
-//            }
-//            DetailFragment df = (DetailFragment)getSupportFragmentManager().findFragmentByTag(DETAILFRAGMENT_TAG);
-//            if ( null != df ) {
-//                df.onListTypeChanged(sortBy);
-//            }
+            MovieFragment mf = (MovieFragment)getSupportFragmentManager().findFragmentById(R.id.fragment_movies);
+            if ( null != mf ) {
+                mf.onListTypeChanged();
+            }
+            DetailFragment df = (DetailFragment)getSupportFragmentManager().findFragmentByTag(DETAILFRAGMENT_TAG);
+            if ( null != df ) {
+                df.onListTypeChanged(sortBy);
+            }
             mSortBy = sortBy;
         }
     }
 
     @Override
     public void onItemSelected(Uri contentUri) {
-//        if (mTwoPane) {
-//            // In two-pane mode, show the detail view in this activity by
-//            // adding or replacing the detail fragment using a
-//            // fragment transaction.
-//            Bundle args = new Bundle();
-//            args.putParcelable(DetailFragment.DETAIL_URI, contentUri);
-//
-//            DetailFragment fragment = new DetailFragment();
-//            fragment.setArguments(args);
-//
-//            getSupportFragmentManager().beginTransaction()
-//                    .replace(R.id.weather_detail_container, fragment, DETAILFRAGMENT_TAG)
-//                    .commit();
-//        } else {
+        if (mTwoPane) {
+            // In two-pane mode, show the detail view in this activity by
+            // adding or replacing the detail fragment using a
+            // fragment transaction.
+            Bundle args = new Bundle();
+            args.putParcelable(DetailFragment.DETAIL_URI, contentUri);
+
+            DetailFragment fragment = new DetailFragment();
+            fragment.setArguments(args);
+
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.movie_detail_container, fragment, DETAILFRAGMENT_TAG)
+                    .commit();
+        } else {
             Intent intent = new Intent(this, DetailActivity.class)
                     .setData(contentUri);
             startActivity(intent);
-//        }
+        }
     }
 }

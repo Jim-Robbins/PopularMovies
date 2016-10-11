@@ -88,7 +88,7 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
 
         super.onCreate(savedInstanceState);
         // Add this line in order for this fragment to handle menu events.
-        setHasOptionsMenu(true);
+        setHasOptionsMenu(false);
     }
 
     @Override
@@ -101,11 +101,7 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            updateMovies();
-            return true;
-        }
+
         return super.onOptionsItemSelected(item);
     }
 
@@ -164,13 +160,6 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         getLoaderManager().restartLoader(MOVIES_LOADER, null, this);
     }
 
-    @Override
-    public void onStart() {
-        mSortBy = Utility.getPreferredMovieList(getActivity());
-        updateMovies();
-        super.onStart();
-    }
-
     /**
      *
      */
@@ -186,6 +175,7 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         }
         else
         {
+            //TODO::Connect to SQL DB
             Toast.makeText(getContext(), R.string.no_wifi_message, Toast.LENGTH_LONG).show();
         }
     }
@@ -241,6 +231,8 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         String listTypeSetting = Utility.getPreferredMovieList(getActivity());
         Uri moviesUri = MoviesContract.MovieEntry.buildMoviesWithListTypeUri(listTypeSetting);
 
+        //TODO::Determine SORT ORDER by List Type
+        
         return new CursorLoader(getActivity(),
                 moviesUri,
                 MOVIES_COLUMNS,
