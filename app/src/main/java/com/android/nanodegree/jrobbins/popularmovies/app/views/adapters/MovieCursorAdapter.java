@@ -11,7 +11,7 @@ import android.widget.ImageView;
 import com.android.nanodegree.jrobbins.popularmovies.app.BuildConfig;
 import com.android.nanodegree.jrobbins.popularmovies.app.R;
 import com.android.nanodegree.jrobbins.popularmovies.app.fragments.MovieFragment;
-import com.android.nanodegree.jrobbins.popularmovies.app.services.MovieDBService;
+import com.android.nanodegree.jrobbins.popularmovies.app.services.MovieDataService;
 import com.squareup.picasso.Picasso;
 
 
@@ -36,7 +36,7 @@ public class MovieCursorAdapter extends CursorAdapter {
         ViewHolder viewHolder = (ViewHolder) view.getTag();
 
         // Get movie poster
-        String posterPath = MovieDBService.getMoviePosterUrl(MovieDBService.MOVIE_DB_IMG_SIZE_185, cursor.getString(MovieFragment.COL_MOVIE_POSTER));
+        String posterPath = MovieDataService.getTheMovieDBApiPosterUri(MovieDataService.MOVIE_DB_IMG_SIZE_185, cursor.getString(MovieFragment.COL_MOVIE_POSTER));
 
         //Use Picasso to load in the movie poster into the imageView
         if (BuildConfig.DEBUG) {

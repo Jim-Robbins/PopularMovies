@@ -22,16 +22,30 @@ public class TestMoviesContract extends AndroidTestCase {
 
     // intentionally includes a slash to make sure Uri is getting quoted correctly
     private static final String TEST_MOVIE_ID = "12345";
+    private static final String TEST_MOVIE_FILTER = "popular";
 
-    public void testBuildMoviesLocation() {
+    public void testBuildMovieWithMovieIdUri() {
         Uri movieUri = MoviesContract.MovieEntry.buildMovieWithMovieIdUri(TEST_MOVIE_ID);
-        assertNotNull("Error: Null Uri returned.  You must fill-in buildMoviesLocation in " +
+        assertNotNull("Error: Null Uri returned.  You must fill-in buildMovieWithMovieIdUri in " +
                         "MoviesContract.",
                 movieUri);
         assertEquals("Error: Movies id not properly appended to the end of the Uri",
-                TEST_MOVIE_ID, movieUri.getLastPathSegment());
+                TEST_MOVIE_ID,MoviesContract.MovieEntry.getMovieIdFromUri(movieUri));
         assertEquals("Error: Movies Uri doesn't match our expected result",
                 movieUri.toString(),
-                "content://com.android.nanodegree.jrobbins.popularmovies.app/movies/12345");
+                MoviesContract.MovieEntry.CONTENT_URI.toString() + "/detail/" + TEST_MOVIE_ID);
     }
+
+    public void testBuildMovieListUri() {
+        Uri movieUri = MoviesContract.MovieEntry.buildMoviesWithListTypeUri(TEST_MOVIE_FILTER);
+        assertNotNull("Error: Null Uri returned.  You must fill-in buildMoviesWithListTypeUri in " +
+                        "MoviesContract.",
+                movieUri);
+        assertEquals("Error: Movies id not properly appended to the end of the Uri",
+                TEST_MOVIE_FILTER, MoviesContract.MovieEntry.getListTypeFromUri(movieUri));
+        assertEquals("Error: Movies Uri doesn't match our expected result",
+                movieUri.toString(),
+                MoviesContract.MovieEntry.CONTENT_URI.toString() + "/list/" +TEST_MOVIE_FILTER);
+    }
+
 }

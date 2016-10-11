@@ -56,9 +56,16 @@ public class TestUtilities extends AndroidTestCase {
         movieValues.put(MoviesContract.MovieEntry.COLUMN_BACKDROP_PATH, "path/");
         movieValues.put(MoviesContract.MovieEntry.COLUMN_VOTE_AVG, 1.5);
         movieValues.put(MoviesContract.MovieEntry.COLUMN_GENRE_IDS, "1,2,4");
-        movieValues.put(MoviesContract.MovieEntry.COLUMN_HAS_VIDEO, 0);
 
         return movieValues;
+    }
+
+    public static ContentValues createListTypeValues() {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(MoviesContract.MovieListsEntry.COLUMN_LIST_ID, "popular");
+        contentValues.put(MoviesContract.MovieListsEntry.COLUMN_MOVIE_ID, TEST_MOVIE_ID);
+
+        return contentValues;
     }
 
 //    static ContentValues createFavoritesValues() {

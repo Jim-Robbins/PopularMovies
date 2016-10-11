@@ -4,7 +4,6 @@ import android.app.IntentService;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Log;
@@ -12,6 +11,7 @@ import android.util.Log;
 import com.android.nanodegree.jrobbins.popularmovies.app.BuildConfig;
 import com.android.nanodegree.jrobbins.popularmovies.app.data.MoviesContract;
 import com.android.nanodegree.jrobbins.popularmovies.app.models.Movie;
+import com.android.nanodegree.jrobbins.popularmovies.app.utils.Utility;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -33,8 +33,8 @@ import java.util.Vector;
  * Created by jim.robbins on 9/8/16.
  */
 
-public class MovieDBService extends IntentService {
-    private static final String LOG_TAG = MovieDBService.class.getSimpleName();
+public class MovieDataService extends IntentService {
+    private static final String LOG_TAG = MovieDataService.class.getSimpleName();
     public static final String LIST_QUERY_EXTRA = "lqe";
 
     private static String MOVIE_DB_API_URL = "http://api.themoviedb.org/3/movie";
@@ -60,7 +60,7 @@ public class MovieDBService extends IntentService {
     private String MOVIE_DB_KEY_VIDEO = "video";
     private String MOVIE_DB_KEY_GENRE_IDS = "genre_ids";
 
-    public MovieDBService() {
+    public MovieDataService() {
         super(LOG_TAG);
     }
 
@@ -83,7 +83,7 @@ public class MovieDBService extends IntentService {
 
         try {
             // Create the request to TheMovieDB API, and open the connection
-            String baseUrl = MovieDBService.getMovieListRequestUrl(listQuery);
+            String baseUrl = MovieDataService.getTheMovieDBApiMovieListUri(listQuery);
             Log.d(LOG_TAG,baseUrl);
 
             URL url = new URL(baseUrl);
@@ -142,7 +142,7 @@ public class MovieDBService extends IntentService {
      * @param sortByPath
      * @return
      */
-    public static String getMovieListRequestUrl(String sortByPath)
+    public static String getTheMovieDBApiMovieListUri(String sortByPath)
     {
         Uri builtUri = Uri.parse(MOVIE_DB_API_URL).buildUpon()
                 .appendPath(sortByPath)
@@ -151,7 +151,7 @@ public class MovieDBService extends IntentService {
         return builtUri.toString();
     }
 
-    public static String getMoviePosterUrl(String size, String posterPath) {
+    public static String getTheMovieDBApiPosterUri(String size, String posterPath) {
 
         Uri builtUri = Uri.parse(MOVIE_DB_IMG_URL).buildUpon()
                 .appendPath(size)
@@ -209,7 +209,7 @@ public class MovieDBService extends IntentService {
     private void populateMovieDB(JSONArray jsonArray) {
 
         JSONObject moviesJson;
-        ArrayList<Movie> movieArrayList = new ArrayList<>(jsonArray.length());
+        //ArrayList<Movie> movieArrayList = new ArrayList<>(jsonArray.length());
 
         // Insert the new weather information into the database
         Vector<ContentValues> cVVector = new Vector<ContentValues>(jsonArray.length());
@@ -232,7 +232,8 @@ public class MovieDBService extends IntentService {
         if ( cVVector.size() > 0 ) {
             ContentValues[] cvArray = new ContentValues[cVVector.size()];
             cVVector.toArray(cvArray);
-            this.getContentResolver().bulkInsert(MoviesContract.MovieEntry.CONTENT_URI, cvArray);
+            Uri insertUri = MoviesContract.MovieEntry.buildMoviesWithListTypeUri(Utility.getPreferredMovieList(this));
+            this.getContentResolver().bulkInsert(insertUri, cvArray);
         }
 
         Log.d(LOG_TAG, "MovieDB Service Complete. " + cVVector.size() + " Inserted");
@@ -253,7 +254,6 @@ public class MovieDBService extends IntentService {
         String mReleaseDate = getJSONStringValue(movieJSONObj, MOVIE_DB_KEY_RELEASE_DATE);
         Double mVoteAvg = getJSONDoubleValue(movieJSONObj, MOVIE_DB_KEY_VOTE_AVG);
         String mBackdropPath = getJSONStringValue(movieJSONObj, MOVIE_DB_KEY_BACKDROP_PATH);
-        boolean mVideo = getJSONBoolValue(movieJSONObj, MOVIE_DB_KEY_VIDEO);
         List<String> mGenreIds = getJSONListValue(movieJSONObj, MOVIE_DB_KEY_GENRE_IDS);
         String sGenreIds = TextUtils.join(",", mGenreIds);
 
@@ -265,7 +265,6 @@ public class MovieDBService extends IntentService {
         contentValues.put(MoviesContract.MovieEntry.COLUMN_RELEASE_DATE, mReleaseDate);
         contentValues.put(MoviesContract.MovieEntry.COLUMN_VOTE_AVG, mVoteAvg);
         contentValues.put(MoviesContract.MovieEntry.COLUMN_BACKDROP_PATH, mBackdropPath);
-        contentValues.put(MoviesContract.MovieEntry.COLUMN_HAS_VIDEO, mVideo);
         contentValues.put(MoviesContract.MovieEntry.COLUMN_GENRE_IDS, sGenreIds);
 
         return contentValues;

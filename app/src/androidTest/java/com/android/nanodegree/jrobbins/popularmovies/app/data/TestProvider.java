@@ -213,7 +213,7 @@ public class TestProvider extends AndroidTestCase {
         Log.d(LOG_TAG, "New row id: " + movieRowId);
 
         ContentValues updatedValues = new ContentValues(values);
-        updatedValues.put(MovieEntry._ID, movieRowId);
+        updatedValues.put(MovieEntry.COLUMN_MOVIE_ID, movieRowId);
         updatedValues.put(MovieEntry.COLUMN_VOTE_AVG, 9.1);
 
         // Create a cursor with observer to make sure that the content provider is notifying
@@ -224,7 +224,7 @@ public class TestProvider extends AndroidTestCase {
         movieCursor.registerContentObserver(tco);
 
         int count = mContext.getContentResolver().update(
-                MovieEntry.CONTENT_URI, updatedValues, MovieEntry._ID + "= ?",
+                MovieEntry.CONTENT_URI, updatedValues, MovieEntry.COLUMN_MOVIE_ID + "= ?",
                 new String[] { Long.toString(movieRowId)});
         assertEquals(count, 1);
 
@@ -338,7 +338,6 @@ public class TestProvider extends AndroidTestCase {
             contentValues.put(MovieEntry.COLUMN_GENRE_IDS, "1,2,3");
             contentValues.put(MovieEntry.COLUMN_BACKDROP_PATH, "back/path");
             contentValues.put(MovieEntry.COLUMN_POSTER, "poster/path");
-            contentValues.put(MovieEntry.COLUMN_HAS_VIDEO, 0);
             contentValues.put(MovieEntry.COLUMN_RELEASE_DATE, TestUtilities.TEST_DATE);
             returnContentValues[i] = contentValues;
         }
@@ -375,7 +374,7 @@ public class TestProvider extends AndroidTestCase {
                 null, // leaving "columns" null just returns all the columns.
                 null, // cols for "where" clause
                 null, // values for "where" clause
-                MovieEntry.COLUMN_MOVIE_ID + " ASC"  // sort order == by DATE ASCENDING
+                MovieEntry.COLUMN_VOTE_AVG + " DESC"  // sort order == by DATE ASCENDING
         );
 
         // we should have as many records in the database as we've inserted

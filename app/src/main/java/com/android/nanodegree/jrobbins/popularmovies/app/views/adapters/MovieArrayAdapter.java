@@ -9,7 +9,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 
 import com.android.nanodegree.jrobbins.popularmovies.app.BuildConfig;
-import com.android.nanodegree.jrobbins.popularmovies.app.services.MovieDBService;
+import com.android.nanodegree.jrobbins.popularmovies.app.services.MovieDataService;
 import com.android.nanodegree.jrobbins.popularmovies.app.models.Movie;
 import com.android.nanodegree.jrobbins.popularmovies.app.R;
 import com.squareup.picasso.Picasso;
@@ -64,7 +64,7 @@ public class MovieArrayAdapter extends ArrayAdapter<Movie> {
             }
 
             ImageView posterView = (ImageView) convertView.findViewById(R.id.grid_item_movie_poster);
-            String posterPath = MovieDBService.getMoviePosterUrl(MovieDBService.MOVIE_DB_IMG_SIZE_185, movie.getPosterPathStr());
+            String posterPath = MovieDataService.getTheMovieDBApiPosterUri(MovieDataService.MOVIE_DB_IMG_SIZE_185, movie.getPosterPathStr());
 
             //Use Picasso to load in the movie poster into the imageView
             if (BuildConfig.DEBUG) {

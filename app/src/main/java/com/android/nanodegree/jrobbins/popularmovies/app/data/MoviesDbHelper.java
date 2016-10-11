@@ -6,6 +6,8 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import com.android.nanodegree.jrobbins.popularmovies.app.data.MoviesContract.*;
 
+import static android.webkit.WebSettings.PluginState.ON;
+
 /**
  * Created by jim.robbins on 9/29/16.
  */
@@ -29,7 +31,7 @@ public class MoviesDbHelper extends SQLiteOpenHelper {
     private void createMoviesCacheTables(SQLiteDatabase db)
     {
         createMoviesTable(db);
-//        createMoviesListTables(db);
+        createMoviesListTables(db);
 //        createMovieDetailsTable(db);
     }
 
@@ -56,7 +58,6 @@ public class MoviesDbHelper extends SQLiteOpenHelper {
                 MovieEntry.COLUMN_BACKDROP_PATH + " TEXT, " +
                 MovieEntry.COLUMN_RELEASE_DATE + " TEXT, " +
                 MovieEntry.COLUMN_VOTE_AVG + " REAL, " +
-                MovieEntry.COLUMN_HAS_VIDEO + " INTEGER, " +
                 MovieEntry.COLUMN_GENRE_IDS + " TEXT, " +
                 MovieEntry.COLUMN_CREATE_DATE + " INTEGER DEFAULT CURRENT_TIMESTAMP " +
                 " );";
@@ -64,17 +65,18 @@ public class MoviesDbHelper extends SQLiteOpenHelper {
         db.execSQL(SQL_CREATE_FAVORITES_TABLE);
     }
 
-//    private void createMoviesListTables(SQLiteDatabase db)
-//    {
-//        // Create a tables to hold movie list filter results
-//        final String SQL_CREATE_MOVIES_LISTS_TABLE = "CREATE TABLE " + MovieListsEntry.TABLE_NAME + "(" +
-//                MovieListsEntry._ID + " INTEGER PRIMARY KEY," +
-//                MovieListsEntry.COLUMN_MOVIE_ID + " TEXT NOT NULL, " +
-//                MovieListsEntry.COLUMN_LIST_ID + " INTEGER NOT NULL " +
-//                " );";
-//
-//        db.execSQL(SQL_CREATE_MOVIES_LISTS_TABLE);
-//    }
+    private void createMoviesListTables(SQLiteDatabase db)
+    {
+        // Create a tables to hold movie list filter results
+        final String SQL_CREATE_MOVIES_LISTS_TABLE = "CREATE TABLE " + MovieListsEntry.TABLE_NAME + "(" +
+                MovieListsEntry._ID + " INTEGER PRIMARY KEY," +
+                MovieListsEntry.COLUMN_MOVIE_ID + " TEXT NOT NULL, " +
+                MovieListsEntry.COLUMN_LIST_ID + " INTEGER NOT NULL, " +
+                "UNIQUE(" + MovieListsEntry.COLUMN_MOVIE_ID + "," + MovieListsEntry.COLUMN_LIST_ID +") ON CONFLICT REPLACE" +
+                " );";
+
+        db.execSQL(SQL_CREATE_MOVIES_LISTS_TABLE);
+    }
 //
 //    private void createMovieDetailsTable(SQLiteDatabase db)
 //    {

@@ -21,10 +21,12 @@ import android.test.AndroidTestCase;
 
 public class TestUriMatcher extends AndroidTestCase {
     private static final String TEST_MOVIE_ID = "12345";
+    private static final String TEST_MOVIE_FILTER = "popular";
 
     // content://com.example.android.sunshine.app/Movies"
     private static final Uri TEST_MOVIES_DIR = MoviesContract.MovieEntry.CONTENT_URI;
     private static final Uri TEST_MOVIES_WITH_ID = MoviesContract.MovieEntry.buildMovieWithMovieIdUri(TEST_MOVIE_ID);
+    private static final Uri TEST_MOVIES_FILTER = MoviesContract.MovieEntry.buildMoviesWithListTypeUri(TEST_MOVIE_FILTER);
 
     public void testUriMatcher() {
         UriMatcher testMatcher = MoviesProvider.buildUriMatcher();
@@ -32,7 +34,9 @@ public class TestUriMatcher extends AndroidTestCase {
         assertEquals("Error: The MOVIES URI was matched incorrectly.",
                 testMatcher.match(TEST_MOVIES_DIR), MoviesProvider.MOVIES);
         assertEquals("Error: The MOVIES WITH ID URI was matched incorrectly.",
-                testMatcher.match(TEST_MOVIES_WITH_ID), MoviesProvider.MOVIES_WITH_ID);
+                testMatcher.match(TEST_MOVIES_WITH_ID), MoviesProvider.MOVIES_MOVIE_ID);
+        assertEquals("Error: The MOVIES WITH ID URI was matched incorrectly.",
+                testMatcher.match(TEST_MOVIES_FILTER), MoviesProvider.MOVIES_LIST_FILTER);
 
     }
 }

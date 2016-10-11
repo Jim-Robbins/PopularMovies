@@ -26,8 +26,8 @@ import android.widget.Toast;
 
 import com.android.nanodegree.jrobbins.popularmovies.app.data.MoviesContract;
 import com.android.nanodegree.jrobbins.popularmovies.app.models.Movie;
+import com.android.nanodegree.jrobbins.popularmovies.app.services.MovieDataService;
 import com.android.nanodegree.jrobbins.popularmovies.app.utils.Utility;
-import com.android.nanodegree.jrobbins.popularmovies.app.services.MovieDBService;
 import com.android.nanodegree.jrobbins.popularmovies.app.R;
 import com.android.nanodegree.jrobbins.popularmovies.app.views.adapters.MovieCursorAdapter;
 
@@ -49,8 +49,8 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     // Specify the columns we need.
     private static final String[] MOVIES_COLUMNS = {
             MoviesContract.MovieEntry.TABLE_NAME + "." + MoviesContract.MovieEntry._ID,
-            MoviesContract.MovieEntry.COLUMN_MOVIE_ID,
-            MoviesContract.MovieEntry.COLUMN_POSTER
+            MoviesContract.MovieEntry.TABLE_NAME + "." + MoviesContract.MovieEntry.COLUMN_MOVIE_ID,
+            MoviesContract.MovieEntry.TABLE_NAME + "." + MoviesContract.MovieEntry.COLUMN_POSTER
     };
 
     // These indices are tied to FORECAST_COLUMNS.  If FORECAST_COLUMNS changes, these
@@ -179,8 +179,8 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         Log.d(LOG_TAG,"Update Movies");
         // If we don't have a connection, show message to user.
         if (isOnline() && isNetworkAvailable()) {
-            Intent intent = new Intent(getActivity(), MovieDBService.class);
-            intent.putExtra(MovieDBService.LIST_QUERY_EXTRA,
+            Intent intent = new Intent(getActivity(), MovieDataService.class);
+            intent.putExtra(MovieDataService.LIST_QUERY_EXTRA,
                     mSortBy);
             getActivity().startService(intent);
         }
