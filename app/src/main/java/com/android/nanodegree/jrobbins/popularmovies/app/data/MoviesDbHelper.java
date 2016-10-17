@@ -6,15 +6,13 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import com.android.nanodegree.jrobbins.popularmovies.app.data.MoviesContract.*;
 
-import static android.webkit.WebSettings.PluginState.ON;
-
 /**
  * Created by jim.robbins on 9/29/16.
  */
 
 public class MoviesDbHelper extends SQLiteOpenHelper {
     // If you change the database schema, you must increment the database version.
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
 
     static final String DATABASE_NAME = "popular_movies.db";
 
@@ -24,7 +22,7 @@ public class MoviesDbHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-//        createFavoritesTable(db);
+        createFavoritesTable(db);
         createMoviesCacheTables(db);
     }
 
@@ -32,19 +30,18 @@ public class MoviesDbHelper extends SQLiteOpenHelper {
     {
         createMoviesTable(db);
         createMoviesListTables(db);
-//        createMovieDetailsTable(db);
     }
 
-//    private void createFavoritesTable(SQLiteDatabase db)
-//    {
-//        // Create a table to hold favorites.  A favorite consists of a boolean supplied by the user and an movie id
-//        final String SQL_CREATE_FAVORITES_TABLE = "CREATE TABLE " + FavoriteEntry.TABLE_NAME + "(" +
-//                FavoriteEntry._ID + " INTEGER PRIMARY KEY," +
-//                FavoriteEntry.COLUMN_MOVIE_ID + " TEXT UNIQUE NOT NULL " +
-//                " );";
-//
-//        db.execSQL(SQL_CREATE_FAVORITES_TABLE);
-//    }
+    private void createFavoritesTable(SQLiteDatabase db)
+    {
+        // Create a table to hold favorites.  A favorite consists of a boolean supplied by the user and an movie id
+        final String SQL_CREATE_FAVORITES_TABLE = "CREATE TABLE " + FavoritesEntry.TABLE_NAME + "(" +
+                FavoritesEntry._ID + " INTEGER PRIMARY KEY," +
+                FavoritesEntry.COLUMN_MOVIE_ID + " TEXT UNIQUE NOT NULL " +
+                " );";
+
+        db.execSQL(SQL_CREATE_FAVORITES_TABLE);
+    }
 
     private void createMoviesTable(SQLiteDatabase db)
     {
@@ -58,7 +55,15 @@ public class MoviesDbHelper extends SQLiteOpenHelper {
                 MovieEntry.COLUMN_BACKDROP_PATH + " TEXT, " +
                 MovieEntry.COLUMN_RELEASE_DATE + " TEXT, " +
                 MovieEntry.COLUMN_VOTE_AVG + " REAL, " +
-                MovieEntry.COLUMN_GENRE_IDS + " TEXT, " +
+                MovieEntry.COLUMN_HOMEPAGE + " TEXT, " +
+                MovieEntry.COLUMN_IMDB_ID + " TEXT, " +
+                MovieEntry.COLUMN_POPULARITY + " INTEGER, " +
+                MovieEntry.COLUMN_PRODUCTION_COMPANIES + " TEXT, " +
+                MovieEntry.COLUMN_RUNTIME + " REAL, " +
+                MovieEntry.COLUMN_VOTE_COUNT + " INTEGER, " +
+                MovieEntry.COLUMN_GENRES + " TEXT, " +
+                MovieEntry.COLUMN_TRAILERS + " TEXT, " +
+                MovieEntry.COLUMN_REVIEWS + " TEXT, " +
                 MovieEntry.COLUMN_CREATE_DATE + " INTEGER DEFAULT CURRENT_TIMESTAMP " +
                 " );";
 
@@ -77,19 +82,6 @@ public class MoviesDbHelper extends SQLiteOpenHelper {
 
         db.execSQL(SQL_CREATE_MOVIES_LISTS_TABLE);
     }
-//
-//    private void createMovieDetailsTable(SQLiteDatabase db)
-//    {
-//        // Create a table to hold movie trailers.
-//        final String SQL_CREATE_MOVIE_DETAILS_TABLE = "CREATE TABLE " + MovieDetailsEntry.TABLE_NAME + "(" +
-//                MovieDetailsEntry._ID + " INTEGER PRIMARY KEY," +
-//                MovieDetailsEntry.COLUMN_MOVIE_ID + " TEXT NOT NULL, " +
-//                MovieDetailsEntry.COLUMN_DETAIL_TYPE + " INTEGER NOT NULL, " +
-//                MovieDetailsEntry.COLUMN_DETAIL + " TEXT " +
-//                " );";
-//
-//        db.execSQL(SQL_CREATE_MOVIE_DETAILS_TABLE);
-//    }
 
     @Override
     public void onOpen(SQLiteDatabase db) {
@@ -100,8 +92,7 @@ public class MoviesDbHelper extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         // Wipe all db directly pulled from online cache if DB changes
         db.execSQL("DROP TABLE IF EXISTS " + MovieEntry.TABLE_NAME);
-//        db.execSQL("DROP TABLE IF EXISTS " + MovieListsEntry.TABLE_NAME);
-//        db.execSQL("DROP TABLE IF EXISTS " + MovieDetailsEntry.TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS " + MovieListsEntry.TABLE_NAME);
 
         createMoviesCacheTables(db);
 

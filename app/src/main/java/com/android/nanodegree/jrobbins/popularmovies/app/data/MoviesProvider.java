@@ -28,21 +28,21 @@ public class MoviesProvider extends ContentProvider {
     public static final int MOVIES_LIST_FILTER = 103;
     public static final int MOVIE_FAVORITES = 200;
 
-//    private static final SQLiteQueryBuilder sMoviesByFavoriteQueryBuilder;
-//    static{
-//        sMoviesByFavoriteQueryBuilder = new SQLiteQueryBuilder();
-//
-//        //This is an inner join which looks like
-//        //movies LEFT OUTER JOIN popular_movies ON movies.movie_id = popular_movies.movie_id
-//        sMoviesByFavoriteQueryBuilder.setTables(
-//                MoviesContract.MovieEntry.TABLE_NAME + " LEFT OUTER JOIN " +
-//                        MoviesContract.FavoriteEntry.TABLE_NAME +
-//                        " ON " + MoviesContract.MovieEntry.TABLE_NAME +
-//                        "." + MoviesContract.MovieEntry.COLUMN_MOVIE_ID +
-//                        " = " + MoviesContract.FavoriteEntry.TABLE_NAME +
-//                        "." + MoviesContract.FavoriteEntry.COLUMN_MOVIE_ID);
-//    }
-//
+    private static final SQLiteQueryBuilder sMoviesByFavoriteQueryBuilder;
+    static{
+        sMoviesByFavoriteQueryBuilder = new SQLiteQueryBuilder();
+
+        //This is an inner join which looks like
+        //movies LEFT OUTER JOIN favorite_movies ON movies.movie_id = favorite_movies.movie_id
+        sMoviesByFavoriteQueryBuilder.setTables(
+                MoviesContract.MovieEntry.TABLE_NAME + " LEFT OUTER JOIN " +
+                        MoviesContract.FavoritesEntry.TABLE_NAME +
+                        " ON " + MoviesContract.MovieEntry.TABLE_NAME +
+                        "." + MoviesContract.MovieEntry.COLUMN_MOVIE_ID +
+                        " = " + MoviesContract.FavoritesEntry.TABLE_NAME +
+                        "." + MoviesContract.FavoritesEntry.COLUMN_MOVIE_ID);
+    }
+
     private static final SQLiteQueryBuilder sMovieListsByTypeQueryBuilder;
     static{
         sMovieListsByTypeQueryBuilder = new SQLiteQueryBuilder();
@@ -61,34 +61,6 @@ public class MoviesProvider extends ContentProvider {
     private static final String sMovieListByTypeSelection =
             MoviesContract.MovieListsEntry.TABLE_NAME+
                     "." + MoviesContract.MovieListsEntry.COLUMN_LIST_ID + " = ? ";
-//
-//
-//    private static final SQLiteQueryBuilder sMovieDetailQueryBuilder;
-//    static{
-//        sMovieDetailQueryBuilder = new SQLiteQueryBuilder();
-//
-//        //This is an inner join which looks like
-//        //movies LEFT OUTER JOIN favorites ON movies.movie_id = favorites.movie_id
-//        //       LEFT OUTER JOIN movie_reviews ON movies.movie_id = movie_reviews.movie_id
-//        //       LEFT OUTER JOIN movie_trailers ON movies.movie_id = movie_trailers.movie_id
-//        sMovieDetailQueryBuilder.setTables(
-//                MoviesContract.MovieEntry.TABLE_NAME + " LEFT OUTER JOIN " +
-//                        MoviesContract.FavoriteEntry.TABLE_NAME +
-//                        " ON " + MoviesContract.MovieEntry.TABLE_NAME +
-//                        "." + MoviesContract.MovieEntry.COLUMN_MOVIE_ID +
-//                        " = " + MoviesContract.FavoriteEntry.TABLE_NAME +
-//                        "." + MoviesContract.FavoriteEntry.COLUMN_MOVIE_ID +
-//                        " LEFT OUTER JOIN " +
-//                        MoviesContract.MovieDetailsEntry.TABLE_NAME +
-//                        " ON " + MoviesContract.MovieEntry.TABLE_NAME +
-//                        "." + MoviesContract.MovieEntry.COLUMN_MOVIE_ID +
-//                        " = " + MoviesContract.MovieDetailsEntry.TABLE_NAME +
-//                        "." + MoviesContract.MovieDetailsEntry.COLUMN_MOVIE_ID);
-//    }
-//
-//    private static final String sMovieDetailSelection =
-//            MoviesContract.MovieEntry.TABLE_NAME+
-//                    "." + MoviesContract.MovieEntry.COLUMN_MOVIE_ID + " = ? ";
 
     private static final SQLiteQueryBuilder sMovieQueryBuilder;
         static {
@@ -99,9 +71,6 @@ public class MoviesProvider extends ContentProvider {
 
     private static final String sMovieSelection =
             MoviesContract.MovieEntry.COLUMN_MOVIE_ID + " = ? ";
-
-//    private static final String sMoviesListTypeSelection =
-//            MoviesContract.MovieEntry.COLUMN_LIST_TYPE + " = ? ";
 
     static UriMatcher buildUriMatcher() {
         // I know what you're thinking.  Why create a UriMatcher when you can use regular
@@ -161,11 +130,6 @@ public class MoviesProvider extends ContentProvider {
             case MOVIES_MOVIE_ID:
                 retCursor = getMovieByMovieId(uri, projection, sortOrder);
                 break;
-            // "movies/#"
-            case MOVIES_ROW_ID: {
-                retCursor = getMovieByRowId(uri, projection, sortOrder);
-                break;
-            }
             // "movies/list/*"
             case MOVIES_LIST_FILTER: {
                 retCursor = getMoviesByFilter(uri, projection, sortOrder);
@@ -195,7 +159,7 @@ public class MoviesProvider extends ContentProvider {
         String listIdFromUri = MoviesContract.MovieEntry.getListTypeFromUri(uri);
         Log.d(LOG_TAG,listIdFromUri);
 
-        return sMovieListsByTypeQueryBuilder.query(mOpenHelper.getReadableDatabase(),
+        Cursor cursor = sMovieListsByTypeQueryBuilder.query(mOpenHelper.getReadableDatabase(),
                 projection,
                 sMovieListByTypeSelection,
                 new String[]{listIdFromUri},
@@ -203,6 +167,7 @@ public class MoviesProvider extends ContentProvider {
                 null,
                 null
         );
+        return cursor;
     }
 
     private Cursor getMovieByMovieId(Uri uri, String[] projection, String sortOrder) {
@@ -217,32 +182,6 @@ public class MoviesProvider extends ContentProvider {
                 sortOrder
         );
     }
-
-    private Cursor getMovieByRowId(Uri uri, String[] projection, String sortOrder) {
-        long _id = MoviesContract.MovieEntry.getRowIdFromUri(uri);
-
-        return sMovieQueryBuilder.query(mOpenHelper.getReadableDatabase(),
-                projection,
-                sMovieSelection,
-                new String[]{Long.toString(_id)},
-                null,
-                null,
-                sortOrder
-        );
-    }
-
-//    private Cursor getMoviesByListType(Uri uri, String[] projection, String sortOrder) {
-//        String list_type = MoviesContract.MovieEntry.getListTypeFromUri(uri);
-//
-//        return sMovieQueryBuilder.query(mOpenHelper.getReadableDatabase(),
-//                projection,
-//                sMovieSelection,
-//                new String[]{list_type},
-//                null,
-//                null,
-//                sortOrder
-//        );
-//    }
 
     @Override
     public Uri insert(Uri uri, ContentValues values) {
@@ -262,14 +201,14 @@ public class MoviesProvider extends ContentProvider {
                 }
                 break;
             }
-//            case FAVORITE: {
-//                long _id = db.insert(MoviesContract.FavoriteEntry.TABLE_NAME, null, values);
-//                if ( _id > 0 )
-//                    returnUri = MoviesContract.FavoriteEntry.buildFavoriteUri(_id);
-//                else
-//                    throw new android.database.SQLException("Failed to insert row into " + uri);
-//                break;
-//            }
+            case MOVIE_FAVORITES: {
+                long _id = db.insert(MoviesContract.FavoritesEntry.TABLE_NAME, null, values);
+                if ( _id > 0 )
+                    returnUri = MoviesContract.FavoritesEntry.buildFavoriteUri(_id);
+                else
+                    throw new android.database.SQLException("Failed to insert row into " + uri);
+                break;
+            }
             case MOVIES_LIST_FILTER: {
                 insertId = insertOrReplace(
                         db,
@@ -282,14 +221,6 @@ public class MoviesProvider extends ContentProvider {
                     insertListType(db, movieId, listType);
                 }
             }
-//            case MOVIE_DETAIL: {
-//                long _id = db.insert(MoviesContract.MovieDetailsEntry.TABLE_NAME, null, values);
-//                if ( _id > 0 )
-//                    returnUri = null; //MoviesContract.MovieReviewEntry.buildReviewUri(_id);
-//                else
-//                    throw new android.database.SQLException("Failed to insert row into " + uri);
-//                break;
-//            }
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -401,18 +332,14 @@ public class MoviesProvider extends ContentProvider {
                 rowsDeleted = db.delete(
                         MoviesContract.MovieEntry.TABLE_NAME, selection, selectionArgs);
                 break;
-//            case FAVORITE:
-//                rowsDeleted = db.delete(
-//                        MoviesContract.FavoriteEntry.TABLE_NAME, selection, selectionArgs);
-//                break;
-//            case MOVIES_LIST_BY_TYPE:
-//                rowsDeleted = db.delete(
-//                        MoviesContract.MovieListsEntry.TABLE_NAME, selection, selectionArgs);
-//                break;
-//            case MOVIE_DETAIL:
-//                rowsDeleted = db.delete(
-//                        MoviesContract.MovieDetailsEntry.TABLE_NAME, selection, selectionArgs);
-//                break;
+            case MOVIE_FAVORITES:
+                rowsDeleted = db.delete(
+                        MoviesContract.FavoritesEntry.TABLE_NAME, selection, selectionArgs);
+                break;
+            case MOVIES_LIST_FILTER:
+                rowsDeleted = db.delete(
+                        MoviesContract.MovieListsEntry.TABLE_NAME, selection, selectionArgs);
+                break;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -431,11 +358,15 @@ public class MoviesProvider extends ContentProvider {
         int rowsUpdated;
 
         switch (match) {
-            case MOVIES:
+//            case MOVIES:
+//                rowsUpdated = db.update(MoviesContract.MovieEntry.TABLE_NAME, values, selection,
+//                        selectionArgs);
+//                break;
+            case MOVIES_LIST_FILTER:
                 rowsUpdated = db.update(MoviesContract.MovieEntry.TABLE_NAME, values, selection,
                         selectionArgs);
                 break;
-            case MOVIES_LIST_FILTER:
+            case MOVIES_MOVIE_ID:
                 rowsUpdated = db.update(MoviesContract.MovieEntry.TABLE_NAME, values, selection,
                         selectionArgs);
                 break;

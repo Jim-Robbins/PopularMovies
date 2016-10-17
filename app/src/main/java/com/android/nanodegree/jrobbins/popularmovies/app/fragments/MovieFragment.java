@@ -1,10 +1,11 @@
 package com.android.nanodegree.jrobbins.popularmovies.app.fragments;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.database.Cursor;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
+import android.graphics.Movie;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -12,6 +13,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -24,14 +26,12 @@ import android.widget.GridView;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.android.nanodegree.jrobbins.popularmovies.app.R;
 import com.android.nanodegree.jrobbins.popularmovies.app.data.MoviesContract;
-import com.android.nanodegree.jrobbins.popularmovies.app.models.Movie;
 import com.android.nanodegree.jrobbins.popularmovies.app.services.MovieDataService;
 import com.android.nanodegree.jrobbins.popularmovies.app.utils.Utility;
-import com.android.nanodegree.jrobbins.popularmovies.app.R;
 import com.android.nanodegree.jrobbins.popularmovies.app.views.adapters.MovieCursorAdapter;
 
-import java.io.IOException;
 import java.util.ArrayList;
 
 /**
@@ -59,11 +59,6 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     public static final int COL_MOVIE_ID = 1;
     public static final int COL_MOVIE_POSTER = 2;
 
-    private ArrayList<Movie> movieList = new ArrayList<>();
-    private String mSortBy = "";
-    private static final String MOVIE_LIST_KEY = "movieList";
-    private static final String MOVIE_LIST_INTENT = "movieVOIntent";
-
     private static final String LOG_TAG = MovieFragment.class.getSimpleName();
 
     private GridView mMovieGridList;
@@ -77,7 +72,7 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         /**
          * DetailFragmentCallback for when an item has been selected.
          */
-        public void onItemSelected(Uri dateUri);
+        public void onItemSelected(Uri contentUri);
     }
 
     public MovieFragment() {
@@ -127,7 +122,8 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
                 Cursor cursor = (Cursor) adapterView.getItemAtPosition(position);
                 if (cursor != null) {
                     ((Callback) getActivity())
-                            .onItemSelected(MoviesContract.MovieEntry.buildMovieWithMovieIdUri(cursor.getString(COL_MOVIE_ID)
+                            .onItemSelected(MoviesContract.MovieEntry.buildMovieWithMovieIdUri(
+                                    cursor.getString(COL_MOVIE_ID)
                             ));
                 }
                 mPosition = position;
@@ -157,6 +153,9 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     // since we read the list type when we create the loader, all we need to do is restart things
     public void onListTypeChanged( ) {
         updateMovies();
+    }
+
+    public void reloadCursorData( ) {
         getLoaderManager().restartLoader(MOVIES_LOADER, null, this);
     }
 
@@ -167,10 +166,12 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     {
         Log.d(LOG_TAG,"Update Movies");
         // If we don't have a connection, show message to user.
-        if (isOnline() && isNetworkAvailable()) {
+        if (Utility.isOnline() && Utility.isNetworkAvailable(getActivity())) {
             Intent intent = new Intent(getActivity(), MovieDataService.class);
-            intent.putExtra(MovieDataService.LIST_QUERY_EXTRA,
-                    mSortBy);
+            intent.setData(
+                    MoviesContract.MovieEntry.buildMoviesWithListTypeUri(
+                            Utility.getPreferredMovieList(getActivity())
+                    ));
             getActivity().startService(intent);
         }
         else
@@ -189,38 +190,6 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
             outState.putInt(SELECTED_KEY, mPosition);
         }
         super.onSaveInstanceState(outState);
-    }
-
-
-    /**
-     * Checking Network is Connected - make sure to setup the android.permission.ACCESS_NETWORK_STATE
-     * permission, to verify network availability: https://guides.codepath.com/android/Sending-and-Managing-Network-Requests
-     * @return true if we have a connection
-     */
-    private Boolean isNetworkAvailable() {
-        ConnectivityManager connectivityManager
-                = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
-        return activeNetworkInfo != null && activeNetworkInfo.isConnectedOrConnecting();
-    }
-
-    /**
-     * Checking the Internet is Connected -To verify if the device is actually connected to the internet,
-     * we can use the following method of pinging the Google DNS servers to check for the expected exit value.
-     * @return true if we get a response
-     */
-    private Boolean isOnline() {
-        Runtime runtime = Runtime.getRuntime();
-        try {
-            Process ipProcess = runtime.exec("/system/bin/ping -c 1 8.8.8.8");
-            int exitValue = ipProcess.waitFor();
-            return (exitValue == 0);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        return false;
     }
 
     @Override
@@ -258,5 +227,27 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         mMovieAdapter.swapCursor(null);
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        LocalBroadcastManager.getInstance(getActivity()).registerReceiver((mMessageReceiver),
+                new IntentFilter(MovieDataService.API_RESULT_SUCCESS)
+        );
 
+    }
+
+    @Override
+    public void onPause() {
+        LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(mMessageReceiver);
+        super.onPause();
+    }
+
+    // Our handler for received Intents. This will be called whenever an Intent
+    // with an action named "custom-event-name" is broadcasted.
+    private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            reloadCursorData();
+        }
+    };
 }

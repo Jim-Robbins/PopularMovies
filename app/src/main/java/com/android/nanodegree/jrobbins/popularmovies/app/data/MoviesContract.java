@@ -32,31 +32,31 @@ public class MoviesContract {
     public static final String PATH_MOVIES_FAVORITES = "favorites";
 
     /* Inner class that defines the table contents of the favorites table */
-//    public static final class FavoriteEntry implements BaseColumns {
-//
-//        public static final Uri CONTENT_URI =
-//                BASE_CONTENT_URI.buildUpon().appendPath(PATH_FAVORITE).build();
-//
-//        public static final String CONTENT_TYPE =
-//                ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_FAVORITE;
-//        public static final String CONTENT_ITEM_TYPE =
-//                ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_FAVORITE;
-//
-//        // Table name
-//        public static final String TABLE_NAME = "favorite_movies";
-//
-//        // The movie id that user selects as a favorite
-//        public static final String COLUMN_MOVIE_ID = "movie_id";
-//
-//        /**
-//         * Build uri to access record in favorites table
-//         * @param id movie_id
-//         * @return Uri
-//         */
-//        public static Uri buildFavoriteUri(long id) {
-//            return ContentUris.withAppendedId(CONTENT_URI, id);
-//        }
-//    }
+    public static final class FavoritesEntry implements BaseColumns {
+
+        public static final Uri CONTENT_URI =
+                BASE_CONTENT_URI.buildUpon().appendPath(PATH_MOVIES_FAVORITES).build();
+
+        public static final String CONTENT_TYPE =
+                ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_MOVIES_FAVORITES;
+        public static final String CONTENT_ITEM_TYPE =
+                ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_MOVIES_FAVORITES;
+
+        // Table name
+        public static final String TABLE_NAME = "favorite_movies";
+
+        // The movie id that user selects as a favorite
+        public static final String COLUMN_MOVIE_ID = "movie_id";
+
+        /**
+         * Build uri to access record in favorites table
+         * @param id movie_id
+         * @return Uri
+         */
+        public static Uri buildFavoriteUri(long id) {
+            return ContentUris.withAppendedId(CONTENT_URI, id);
+        }
+    }
 
     /* Inner class that defines the table contents of the movies table */
     public static final class MovieEntry implements BaseColumns {
@@ -80,8 +80,16 @@ public class MoviesContract {
         public static final String COLUMN_RELEASE_DATE = "release_date";
         public static final String COLUMN_VOTE_AVG= "vote_average";
         public static final String COLUMN_BACKDROP_PATH = "backdrop_path";
-        public static final String COLUMN_GENRE_IDS = "genre_ids";
         public static final String COLUMN_CREATE_DATE = "create_date";
+        public static final String COLUMN_HOMEPAGE = "homepage";
+        public static final String COLUMN_IMDB_ID = "imdb_id";
+        public static final String COLUMN_POPULARITY = "popularity";
+        public static final String COLUMN_PRODUCTION_COMPANIES = "production_companies";
+        public static final String COLUMN_RUNTIME = "runtime";
+        public static final String COLUMN_VOTE_COUNT = "vote_count";
+        public static final String COLUMN_GENRES = "genres";
+        public static final String COLUMN_TRAILERS = "trailers";
+        public static final String COLUMN_REVIEWS = "reviews";
 
         /**
          * Build uri to access movie by id
@@ -92,20 +100,8 @@ public class MoviesContract {
             return CONTENT_URI.buildUpon().appendPath(PATH_MOVIES_DETAIL).appendPath(movie_id).build();
         }
 
-        public static Uri buildMovieWithRowIdUri(long id) {
-            return ContentUris.withAppendedId(CONTENT_URI, id);
-        }
-
         public static Uri buildMoviesWithListTypeUri(String listType) {
             return CONTENT_URI.buildUpon().appendPath(PATH_MOVIES_LIST).appendPath(listType).build();
-        }
-
-        public static Uri buildMoviesUri() {
-            return CONTENT_URI;
-        }
-
-        public static long getRowIdFromUri(Uri uri) {
-            return Long.parseLong(uri.getPathSegments().get(1));
         }
 
         public static String getMovieIdFromUri(Uri uri) {
@@ -127,33 +123,4 @@ public class MoviesContract {
         public static final String COLUMN_LIST_ID = "list_id";
 
     }
-//
-//    /* Inner class that defines the table contents of the movie reviews & trailers table */
-//    public static final class MovieDetailsEntry implements BaseColumns {
-//
-//        public static final Uri CONTENT_URI =
-//                BASE_CONTENT_URI.buildUpon().appendPath(PATH_MOVIE_DETAIL).build();
-//
-//        public static final String CONTENT_TYPE =
-//                ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_MOVIE_DETAIL;
-//        public static final String CONTENT_ITEM_TYPE =
-//                ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_MOVIE_DETAIL;
-//
-//        // Table name
-//        public static final String TABLE_NAME = "movie_details";
-//
-//        // The movie id that user selects as a favorite
-//        public static final String COLUMN_MOVIE_ID = "movie_id";
-//        public static final String COLUMN_DETAIL_TYPE = "detail_type";
-//        public static final String COLUMN_DETAIL = "detail";
-//
-//        /**
-//         * Build uri to access movies list by filter
-//         * @param filter the filter we want to use to build our list by
-//         * @return Uri
-//         */
-//        public static Uri buildMovieDetail(String filter) {
-//            return CONTENT_URI.buildUpon().appendPath(PATH_MOVIE_DETAIL).appendPath(filter).build();
-//        }
-//    }
 }

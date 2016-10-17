@@ -2,9 +2,9 @@ package com.android.nanodegree.jrobbins.popularmovies.app;
 
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Bundle;
 import android.preference.PreferenceActivity;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -82,6 +82,7 @@ public class MainActivity extends AppCompatActivity implements MovieFragment.Cal
     @Override
     protected void onResume() {
         super.onResume();
+
         String sortBy = Utility.getPreferredMovieList( this );
         // update the location in our second pane using the fragment manager
         if (sortBy != null && !sortBy.equals(mSortBy)) {
@@ -89,13 +90,10 @@ public class MainActivity extends AppCompatActivity implements MovieFragment.Cal
             if ( null != mf ) {
                 mf.onListTypeChanged();
             }
-            DetailFragment df = (DetailFragment)getSupportFragmentManager().findFragmentByTag(DETAILFRAGMENT_TAG);
-            if ( null != df ) {
-                df.onListTypeChanged(sortBy);
-            }
             mSortBy = sortBy;
         }
     }
+
 
     @Override
     public void onItemSelected(Uri contentUri) {
@@ -118,4 +116,5 @@ public class MainActivity extends AppCompatActivity implements MovieFragment.Cal
             startActivity(intent);
         }
     }
+
 }

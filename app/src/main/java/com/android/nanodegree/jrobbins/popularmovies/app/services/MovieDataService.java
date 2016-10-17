@@ -3,14 +3,14 @@ package com.android.nanodegree.jrobbins.popularmovies.app.services;
 import android.app.IntentService;
 import android.content.ContentValues;
 import android.content.Intent;
-import android.database.Cursor;
 import android.net.Uri;
+import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
 import android.util.Log;
 
 import com.android.nanodegree.jrobbins.popularmovies.app.BuildConfig;
 import com.android.nanodegree.jrobbins.popularmovies.app.data.MoviesContract;
-import com.android.nanodegree.jrobbins.popularmovies.app.models.Movie;
+import com.android.nanodegree.jrobbins.popularmovies.app.data.MoviesProvider;
 import com.android.nanodegree.jrobbins.popularmovies.app.utils.Utility;
 
 import org.json.JSONArray;
@@ -23,7 +23,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
@@ -35,11 +34,13 @@ import java.util.Vector;
 
 public class MovieDataService extends IntentService {
     private static final String LOG_TAG = MovieDataService.class.getSimpleName();
-    public static final String LIST_QUERY_EXTRA = "lqe";
 
     private static String MOVIE_DB_API_URL = "http://api.themoviedb.org/3/movie";
     private static String MOVIE_DB_IMG_URL = "http://image.tmdb.org/t/p/";
     private static String MOVIE_DB_PARAM_API_KEY = "api_key";
+
+    public static String MOVIE_DB_DETAIL_VIDEOS = "videos";
+    public static String MOVIE_DB_DETAIL_REVIEWS = "reviews";
 
     public static String MOVIE_DB_IMG_SIZE_92 = "w92";
     public static String MOVIE_DB_IMG_SIZE_154 = "w154";
@@ -49,7 +50,7 @@ public class MovieDataService extends IntentService {
     public static String MOVIE_DB_IMG_SIZE_780 = "w780";
     public static String MOVIE_DB_IMG_SIZE_FULL = "original";
 
-    private String MOVIE_DB_KEY_RESULTS = "results";
+    public static String MOVIE_DB_KEY_RESULTS = "results";
     private String MOVIE_DB_KEY_ID = "id";
     private String MOVIE_DB_KEY_TITLE = "title";
     private String MOVIE_DB_KEY_POSTER_PATH = "poster_path";
@@ -57,22 +58,82 @@ public class MovieDataService extends IntentService {
     private String MOVIE_DB_KEY_RELEASE_DATE = "release_date";
     private String MOVIE_DB_KEY_VOTE_AVG = "vote_average";
     private String MOVIE_DB_KEY_BACKDROP_PATH = "backdrop_path";
-    private String MOVIE_DB_KEY_VIDEO = "video";
-    private String MOVIE_DB_KEY_GENRE_IDS = "genre_ids";
+    private String MOVIE_DB_KEY_NAME = "name";
+
+    static final public String API_RESULT_SUCCESS = "MovieDataService.REQUEST_PROCESSED";
+    static final public String API_RESULT_FAIL = "MovieDataService.REQUEST_FAILED";
 
     public MovieDataService() {
         super(LOG_TAG);
     }
 
-    private List<Integer> mMovieIds;
+    private Uri mUri;
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+    }
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        Log.d(LOG_TAG, "onHandleIntent");
-        String listQuery = intent.getStringExtra(LIST_QUERY_EXTRA);
+        if (intent == null) {
+            return;
+        }
 
-        Log.d(LOG_TAG, "onHandleIntent:"+ listQuery);
+        mUri = intent.getData();
+        String dataType = new MoviesProvider().getType(mUri);
+        if(dataType.equalsIgnoreCase(MoviesContract.MovieEntry.CONTENT_TYPE)) {
+            getMoviesListFromApi();
+        } else {
+            getMovieDetailsFromApi();
+        }
 
+    }
+
+    private void getMoviesListFromApi()
+    {
+        String listQuery = MoviesContract.MovieEntry.getListTypeFromUri(mUri);
+        Log.d(LOG_TAG, "getMoviesListFromApi:"+ listQuery);
+        String baseUrl = MovieDataService.getTheMovieDBApiMovieListUri(listQuery);
+
+        String movieDataJsonStr = getJSONDataFromApiCall(baseUrl);
+
+        getMoviesListDataFromJson(movieDataJsonStr);
+        sendLocalBroadcastResult();
+    }
+
+    private void getMovieDetailsFromApi()
+    {
+        ContentValues contentValues = new ContentValues();
+
+        // Get movie id from the uri
+        String movieId = MoviesContract.MovieEntry.getMovieIdFromUri(mUri);
+        Log.d(LOG_TAG, "getMovieDetailsFromApi:"+ movieId);
+
+        // Get list of movie trailers
+        String baseUrl = MovieDataService.getTheMovieDBApiMovieDetailUri(movieId, MOVIE_DB_DETAIL_VIDEOS);
+        String movieDataJsonStr = getJSONDataFromApiCall(baseUrl);
+        if (!TextUtils.isEmpty(movieDataJsonStr)) {
+            contentValues.put(MoviesContract.MovieEntry.COLUMN_TRAILERS, movieDataJsonStr);
+        }
+
+        // Get list of movie reviews
+        baseUrl = MovieDataService.getTheMovieDBApiMovieDetailUri(movieId, MOVIE_DB_DETAIL_REVIEWS);
+        movieDataJsonStr = getJSONDataFromApiCall(baseUrl);
+        if (!TextUtils.isEmpty(movieDataJsonStr)) {
+            contentValues.put(MoviesContract.MovieEntry.COLUMN_REVIEWS, movieDataJsonStr);
+        }
+
+        // Get movie details from API
+        baseUrl = MovieDataService.getTheMovieDBApiMovieDetailUri(movieId, null);
+        movieDataJsonStr = getJSONDataFromApiCall(baseUrl);
+        getMovieDetailsDataFromJson(movieDataJsonStr, contentValues);
+
+        sendLocalBroadcastResult();
+    }
+
+    private String getJSONDataFromApiCall(String baseUrl)
+    {
         // These two need to be declared outside the try/catch
         // so that they can be closed in the finally block.
         HttpURLConnection urlConnection = null;
@@ -83,7 +144,6 @@ public class MovieDataService extends IntentService {
 
         try {
             // Create the request to TheMovieDB API, and open the connection
-            String baseUrl = MovieDataService.getTheMovieDBApiMovieListUri(listQuery);
             Log.d(LOG_TAG,baseUrl);
 
             URL url = new URL(baseUrl);
@@ -98,7 +158,7 @@ public class MovieDataService extends IntentService {
             StringBuffer buffer = new StringBuffer();
             if (inputStream == null) {
                 // Nothing to do.
-                return;
+                return null;
             }
             reader = new BufferedReader(new InputStreamReader(inputStream));
 
@@ -112,10 +172,9 @@ public class MovieDataService extends IntentService {
 
             if (buffer.length() == 0) {
                 // Stream was empty.  No point in parsing.
-                return;
+                return null;
             }
             movieDataJsonStr = buffer.toString();
-            getMovieDataFromJson(movieDataJsonStr);
         } catch (IOException e) {
             Log.e(LOG_TAG, "Error ", e);
             // If the code didn't successfully get the weather data, there's no point in attempting
@@ -132,7 +191,12 @@ public class MovieDataService extends IntentService {
                 }
             }
         }
-        return;
+        return movieDataJsonStr;
+    }
+
+    public void sendLocalBroadcastResult() {
+        Intent intent = new Intent(API_RESULT_SUCCESS);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 
     /**
@@ -159,21 +223,23 @@ public class MovieDataService extends IntentService {
         return  builtUri.toString() + posterPath;
     }
 
-    public Cursor getAllEntries() {
-        Uri allMoviesUri = MoviesContract.MovieEntry.buildMoviesUri();
-        String[] MOVIES_COLUMNS = {
-                MoviesContract.MovieEntry.COLUMN_MOVIE_ID
-        };
+    public static String getTheMovieDBApiMovieDetailUri(String movieId, String detailPath)
+    {
+        Uri builtUri;
+        if (detailPath == null) {
+            builtUri = Uri.parse(MOVIE_DB_API_URL).buildUpon()
+                    .appendPath(movieId)
+                    .appendQueryParameter(MOVIE_DB_PARAM_API_KEY, BuildConfig.THE_MOVIE_DB_API_KEY)
+                    .build();
+        } else {
+            builtUri = Uri.parse(MOVIE_DB_API_URL).buildUpon()
+                    .appendPath(movieId)
+                    .appendPath(detailPath)
+                    .appendQueryParameter(MOVIE_DB_PARAM_API_KEY, BuildConfig.THE_MOVIE_DB_API_KEY)
+                    .build();
+        }
 
-        Cursor cursor = this.getContentResolver().query(
-                allMoviesUri,
-                MOVIES_COLUMNS,
-                null,
-                null,
-                null
-        );
-
-        return cursor;
+        return builtUri.toString();
     }
 
     /**
@@ -181,11 +247,10 @@ public class MovieDataService extends IntentService {
      * @param moviesListJsonStr The raw JSON string returned from the api
      * @return a List of type Movie
      */
-    public void getMovieDataFromJson(String moviesListJsonStr) {
+    public void getMoviesListDataFromJson(String moviesListJsonStr) {
 
         // Convert raw json string to JSON Object
         JSONObject moviesListJSONObj;
-        mMovieIds = new ArrayList<Integer>();
 
         try {
             moviesListJSONObj = new JSONObject(moviesListJsonStr);
@@ -194,7 +259,7 @@ public class MovieDataService extends IntentService {
             if (!moviesListJSONObj.isNull(MOVIE_DB_KEY_RESULTS))
             {
                 //Create our array list and populate it
-                populateMovieDB(moviesListJSONObj.getJSONArray(MOVIE_DB_KEY_RESULTS));
+                populateMoviesTable(moviesListJSONObj.getJSONArray(MOVIE_DB_KEY_RESULTS));
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -206,7 +271,7 @@ public class MovieDataService extends IntentService {
      * @param jsonArray The JSON array containing the list of movie results
      * @return List of type Movie
      */
-    private void populateMovieDB(JSONArray jsonArray) {
+    private void populateMoviesTable(JSONArray jsonArray) {
 
         JSONObject moviesJson;
         //ArrayList<Movie> movieArrayList = new ArrayList<>(jsonArray.length());
@@ -223,7 +288,7 @@ public class MovieDataService extends IntentService {
                 continue;
             }
 
-            ContentValues movieValues = parseJSONIntoObject(moviesJson);
+            ContentValues movieValues = parseJSONIntoMoviesContentValues(moviesJson);
             cVVector.add(movieValues);
         }
 
@@ -244,132 +309,97 @@ public class MovieDataService extends IntentService {
      * @param movieJSONObj  JSONObject of a particular movie object from the results list
      * @return contentValues created from the JSON data
      */
-    private ContentValues parseJSONIntoObject(JSONObject movieJSONObj)
+    private ContentValues parseJSONIntoMoviesContentValues(JSONObject movieJSONObj)
     {
-        int mId = getJSONIntValue(movieJSONObj, MOVIE_DB_KEY_ID);
-        mMovieIds.add(mId);
-        String mTitle = getJSONStringValue(movieJSONObj, MOVIE_DB_KEY_TITLE);
-        String mPoster = getJSONStringValue(movieJSONObj, MOVIE_DB_KEY_POSTER_PATH);
-        String mOverview = getJSONStringValue(movieJSONObj, MOVIE_DB_KEY_OVERVIEW);
-        String mReleaseDate = getJSONStringValue(movieJSONObj, MOVIE_DB_KEY_RELEASE_DATE);
-        Double mVoteAvg = getJSONDoubleValue(movieJSONObj, MOVIE_DB_KEY_VOTE_AVG);
-        String mBackdropPath = getJSONStringValue(movieJSONObj, MOVIE_DB_KEY_BACKDROP_PATH);
-        List<String> mGenreIds = getJSONListValue(movieJSONObj, MOVIE_DB_KEY_GENRE_IDS);
-        String sGenreIds = TextUtils.join(",", mGenreIds);
+        int movieId = Utility.getJSONIntValue(movieJSONObj, MOVIE_DB_KEY_ID);
+        String movieTitle = Utility.getJSONStringValue(movieJSONObj, MOVIE_DB_KEY_TITLE);
+        String moviePoster = Utility.getJSONStringValue(movieJSONObj, MOVIE_DB_KEY_POSTER_PATH);
+        String movieOverview = Utility.getJSONStringValue(movieJSONObj, MOVIE_DB_KEY_OVERVIEW);
+        String movieReleaseDate = Utility.getJSONStringValue(movieJSONObj, MOVIE_DB_KEY_RELEASE_DATE);
+        Double movieVoteAvg = Utility.getJSONDoubleValue(movieJSONObj, MOVIE_DB_KEY_VOTE_AVG);
+        String movieBackdropPath = Utility.getJSONStringValue(movieJSONObj, MOVIE_DB_KEY_BACKDROP_PATH);
 
         ContentValues contentValues = new ContentValues();
-        contentValues.put(MoviesContract.MovieEntry.COLUMN_MOVIE_ID, mId);
-        contentValues.put(MoviesContract.MovieEntry.COLUMN_TITLE, mTitle);
-        contentValues.put(MoviesContract.MovieEntry.COLUMN_POSTER, mPoster);
-        contentValues.put(MoviesContract.MovieEntry.COLUMN_OVERVIEW, mOverview);
-        contentValues.put(MoviesContract.MovieEntry.COLUMN_RELEASE_DATE, mReleaseDate);
-        contentValues.put(MoviesContract.MovieEntry.COLUMN_VOTE_AVG, mVoteAvg);
-        contentValues.put(MoviesContract.MovieEntry.COLUMN_BACKDROP_PATH, mBackdropPath);
-        contentValues.put(MoviesContract.MovieEntry.COLUMN_GENRE_IDS, sGenreIds);
+        contentValues.put(MoviesContract.MovieEntry.COLUMN_MOVIE_ID, movieId);
+        contentValues.put(MoviesContract.MovieEntry.COLUMN_TITLE, movieTitle);
+        contentValues.put(MoviesContract.MovieEntry.COLUMN_POSTER, moviePoster);
+        contentValues.put(MoviesContract.MovieEntry.COLUMN_OVERVIEW, movieOverview);
+        contentValues.put(MoviesContract.MovieEntry.COLUMN_RELEASE_DATE, movieReleaseDate);
+        contentValues.put(MoviesContract.MovieEntry.COLUMN_VOTE_AVG, movieVoteAvg);
+        contentValues.put(MoviesContract.MovieEntry.COLUMN_BACKDROP_PATH, movieBackdropPath);
 
         return contentValues;
     }
 
     /**
-     * Helper class to safely grab a string value from JSON data, even if the key is invalid
-     * @param jsonObject The data object we want to look for the key in
-     * @param key The key string to look for in the object
-     * @return String value from JSON key
+     * Parse out raw JSON data from The Movie DB api into usable Movie detail items
+     * @param moviesDetailJsonStr The raw JSON string returned from the api
      */
-    private String getJSONStringValue(JSONObject jsonObject, String key) {
-        String value = "";
+    public void getMovieDetailsDataFromJson(String moviesDetailJsonStr, ContentValues contentValues) {
+
+        // Convert raw json string to JSON Object
+        JSONObject moviesListJSONObj;
+
         try {
-            if (!jsonObject.isNull(key)) {
-                value = jsonObject.getString(key);
-            }
+            moviesListJSONObj = new JSONObject(moviesDetailJsonStr);
+            populateMovieDetails(moviesListJSONObj, contentValues);
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
-        return value;
     }
 
     /**
-     * Helper class to safely grab a boolean value from JSON data, even if the key is invalid
-     * @param jsonObject The data object we want to look for the key in
-     * @param key The key string to look for in the object
-     * @return boolean value from JSON key
+     * Update a movie entry populated with Movie details created from JSON object data
+     * @param moviesJson The JSONObject containing the list of movie detail results
+     * @return List of type Movie
      */
-    private boolean getJSONBoolValue(JSONObject jsonObject, String key) {
-        boolean value = false;
-        try {
-            if (!jsonObject.isNull(key)) {
-                value = jsonObject.getBoolean(key);
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+    private void populateMovieDetails(JSONObject moviesJson, ContentValues contentValues) {
 
-        return value;
+        ContentValues movieValues = parseJSONIntoMovieDetailContentValue(moviesJson, contentValues);
+
+        // update database
+        Uri updateUri = MoviesContract.MovieEntry.buildMovieWithMovieIdUri(
+                movieValues.getAsString(MoviesContract.MovieEntry.COLUMN_MOVIE_ID));
+
+        String sMoviesByIdSelection = MoviesContract.MovieListsEntry.COLUMN_MOVIE_ID + " = ? ";
+
+        int updated = this.getContentResolver().update(
+                updateUri,
+                movieValues,
+                sMoviesByIdSelection,
+                new String[]{MoviesContract.MovieEntry.getMovieIdFromUri(mUri)}
+            );
+
+        Log.d(LOG_TAG, "MovieDB Detail update Complete. " + updated + " Inserted");
     }
 
     /**
-     * Helper class to safely grab an int value from JSON data, even if the key is invalid
-     * @param jsonObject The data object we want to look for the key in
-     * @param key The key string to look for in the object
-     * @return int value from JSON key
+     * Parse the json result item into contentValues Object
+     * @param movieJSONObj  JSONObject of a particular movie object from the results list
+     * @return contentValues created from the JSON data
      */
-    private int getJSONIntValue(JSONObject jsonObject, String key) {
-        int value = 0;
-        try {
-            if (!jsonObject.isNull(key)) {
-                value = jsonObject.getInt(key);
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+    private ContentValues parseJSONIntoMovieDetailContentValue(JSONObject movieJSONObj, ContentValues contentValues)
+    {
+        int mId = Utility.getJSONIntValue(movieJSONObj, MOVIE_DB_KEY_ID);
+        String movieHomepage = Utility.getJSONStringValue(movieJSONObj, "homepage");
+        String movieImdbId = Utility.getJSONStringValue(movieJSONObj, "imdb_id");
+        String moviePopularity = Utility.getJSONStringValue(movieJSONObj, "popularity");
+        List<String> movieProductionCompanies = Utility.getJSONListValue(movieJSONObj, "production_companies", MOVIE_DB_KEY_NAME);
+        String sMovieProductionCompanies = TextUtils.join(", ", movieProductionCompanies);
+        Double movieRuntime = Utility.getJSONDoubleValue(movieJSONObj, "runtime");
+        int movieVoteCount = Utility.getJSONIntValue(movieJSONObj, "vote_count");
+        List<String> movieGenres = Utility.getJSONListValue(movieJSONObj, "genres", MOVIE_DB_KEY_NAME);
+        String sGenres = TextUtils.join(", ", movieGenres);
 
-        return value;
-    }
+        contentValues.put(MoviesContract.MovieEntry.COLUMN_MOVIE_ID, mId);
+        contentValues.put(MoviesContract.MovieEntry.COLUMN_HOMEPAGE, movieHomepage);
+        contentValues.put(MoviesContract.MovieEntry.COLUMN_IMDB_ID, movieImdbId);
+        contentValues.put(MoviesContract.MovieEntry.COLUMN_POPULARITY, moviePopularity);
+        contentValues.put(MoviesContract.MovieEntry.COLUMN_PRODUCTION_COMPANIES, sMovieProductionCompanies);
+        contentValues.put(MoviesContract.MovieEntry.COLUMN_RUNTIME, movieRuntime);
+        contentValues.put(MoviesContract.MovieEntry.COLUMN_VOTE_COUNT, movieVoteCount);
+        contentValues.put(MoviesContract.MovieEntry.COLUMN_GENRES, sGenres);
 
-    /**
-     * Helper class to safely grab a double value from JSON data, even if the key is invalid
-     * @param jsonObject The data object we want to look for the key in
-     * @param key The key string to look for in the object
-     * @return Double value from JSON key
-     */
-    private Double getJSONDoubleValue(JSONObject jsonObject, String key) {
-        Double value = 0.0;
-        try {
-            if (!jsonObject.isNull(key)) {
-                value = jsonObject.getDouble(key);
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-        return value;
-    }
-
-    /**
-     * Helper class to safely grab JSON Array data, and covert it to a List\<String\>
-     * @param jsonObject The data object we want to look for the key in
-     * @param key The key string to look for in the object
-     * @return List\<String\> value from JSONArray
-     */
-    private List<String> getJSONListValue(JSONObject jsonObject, String key) {
-        List<String> listdata = new ArrayList<>();
-
-        try {
-            if (!jsonObject.isNull(key)) {
-                JSONArray jArray = jsonObject.getJSONArray(key);
-                for (int i = 0; i < jArray.length(); i++) {
-                    try {
-                        listdata.add(jArray.getString(i));
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-        return listdata;
+        return contentValues;
     }
 }

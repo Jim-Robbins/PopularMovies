@@ -11,48 +11,60 @@
 
     <string name="no_wifi_message">Please connect to WI-FI to load the latest movie details.</string>
 
+    <string name="detail_movie_runtime"><xliff:g id="length" example="120">%1$d</xliff:g> min</string>
+
     <string name="detail_movie_user_rating"><xliff:g id="rating" example="8.6">%1$.1f</xliff:g> / 10</string>
+
+    <string name="detail_movie_user_rating_with_votes"><xliff:g id="rating" example="8.6">%1$.1f</xliff:g> / 10 (<xliff:g id="votes" example="12345">%2$d</xliff:g>)</string>
+
+    <string name="detail_imdb_text">IMDB</string>
+
+    <string name="detail_imdb_link">http://www.imdb.com/title/<xliff:g id="key" example="tt23432">%s</xliff:g></string>
 
     <!-- Strings related to "Sort By" setting options -->
 
     <!-- Label for the sort by preference [CHAR LIMIT=30] -->
-    <string name="pref_sort_by_label">Sort by</string>
+    <string name="pref_sort_by_label">Movie List Type</string>
 
-    <!-- Label for metric option in temperature unit preference [CHAR LIMIT=25] -->
+    <!-- Label for movie list type [CHAR LIMIT=25] -->
     <string name="pref_sort_by_label_popular">Popularity</string>
 
-    <!-- Label for imperial option in temperature unit preference [CHAR LIMIT=25] -->
+    <!-- Label for movie list type [CHAR LIMIT=25] -->
     <string name="pref_sort_by_label_top_rated">Top Rated</string>
 
-    <!-- Label for imperial option in temperature unit preference [CHAR LIMIT=25] -->
-    <string name="pref_sort_by_label_latest">Latest</string>
+    <!-- Label for movie list type [CHAR LIMIT=25] -->
+    <string name="pref_sort_by_label_favorites">Favorites</string>
 
-    <!-- Label for imperial option in temperature unit preference [CHAR LIMIT=25] -->
+    <!-- Label for movie list type [CHAR LIMIT=25] -->
     <string name="pref_sort_by_label_now_playing">Now Playing</string>
 
-    <!-- Label for imperial option in temperature unit preference [CHAR LIMIT=25] -->
+    <!-- Label for movie list type [CHAR LIMIT=25] -->
     <string name="pref_sort_by_label_upcoming">Upcoming</string>
 
-    <!-- Key name for temperature unit preference in SharedPreferences [CHAR LIMIT=NONE] -->
+    <!-- Key name for movie list preference in SharedPreferences [CHAR LIMIT=NONE] -->
     <string name="pref_sort_by_key" translatable="false">sort_by</string>
 
-    <!-- Value in SharedPreferences for metric temperature unit option [CHAR LIMIT=NONE] -->
+    <!-- Value in SharedPreferences for list type option [CHAR LIMIT=NONE] -->
     <string name="pref_sort_by_popular" translatable="false">popular</string>
 
-    <!-- Value in SharedPreferences for imperial temperature unit option [CHAR LIMIT=NONE] -->
+    <!-- Value in SharedPreferences for list type option [CHAR LIMIT=NONE] -->
     <string name="pref_sort_by_top_rated" translatable="false">top_rated</string>
 
-    <!-- Value in SharedPreferences for imperial temperature unit option [CHAR LIMIT=NONE] -->
-    <string name="pref_sort_by_latest" translatable="false">latest</string>
+    <!-- Value in SharedPreferences for list type option [CHAR LIMIT=NONE] -->
+    <string name="pref_sort_by_favorites" translatable="false">favorites</string>
 
-    <!-- Value in SharedPreferences for imperial temperature unit option [CHAR LIMIT=NONE] -->
+    <!-- Value in SharedPreferences for list type option [CHAR LIMIT=NONE] -->
     <string name="pref_sort_by_now_playing" translatable="false">now_playing</string>
 
-    <!-- Value in SharedPreferences for imperial temperature unit option [CHAR LIMIT=NONE] -->
+    <!-- Value in SharedPreferences for list type option [CHAR LIMIT=NONE] -->
     <string name="pref_sort_by_upcoming" translatable="false">upcoming</string>
+
+
     <string name="loading">Loading</string>
     <string name="loading_movie_list">Retrieving list of movies</string>
 
     <string name="content_authority">com.android.nanodegree.jrobbins.popularmovies.app</string>
+    <string name="detail_trailers">Trailers:</string>
+    <string name="detail_reviews">Reviews:</string>
 
 </resources>
