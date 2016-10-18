@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
-import android.graphics.Movie;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -16,15 +15,11 @@ import android.support.v4.content.Loader;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import com.android.nanodegree.jrobbins.popularmovies.app.R;
 import com.android.nanodegree.jrobbins.popularmovies.app.data.MoviesContract;
@@ -32,18 +27,21 @@ import com.android.nanodegree.jrobbins.popularmovies.app.services.MovieDataServi
 import com.android.nanodegree.jrobbins.popularmovies.app.utils.Utility;
 import com.android.nanodegree.jrobbins.popularmovies.app.views.adapters.MovieCursorAdapter;
 
-import java.util.ArrayList;
 
 /**
  * Copied structure from Sunshine App example, Fragment to create Grid list of movie titles
  */
 public class MovieFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
-    private MovieCursorAdapter mMovieAdapter;
-    private int mPosition = GridView.INVALID_POSITION;
-    private static final String SELECTED_KEY = "selected_position";
+    private static final String LOG_TAG = MovieFragment.class.getSimpleName();
 
+    private static final String SELECTED_KEY = "selected_position";
     private static final int MOVIES_LOADER = 0;
+
+    private MovieCursorAdapter mMovieAdapter;
+    private GridView mMovieGridList;
+
+    private int mPosition = GridView.INVALID_POSITION;
 
     // For the movies list view we're showing only a small subset of the stored data.
     // Specify the columns we need.
@@ -53,15 +51,11 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
             MoviesContract.MovieEntry.TABLE_NAME + "." + MoviesContract.MovieEntry.COLUMN_POSTER
     };
 
-    // These indices are tied to FORECAST_COLUMNS.  If FORECAST_COLUMNS changes, these
+    // These indices are tied to MOVIES_COLUMNS.  If MOVIES_COLUMNS changes, these
     // must change.
     public static final int COL_ID = 0;
     public static final int COL_MOVIE_ID = 1;
     public static final int COL_MOVIE_POSTER = 2;
-
-    private static final String LOG_TAG = MovieFragment.class.getSimpleName();
-
-    private GridView mMovieGridList;
 
     /**
      * A callback interface that all activities containing this fragment must
@@ -70,7 +64,7 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
      */
     public interface Callback {
         /**
-         * DetailFragmentCallback for when an item has been selected.
+         * MovieFragmentCallback for when an item has been selected.
          */
         public void onItemSelected(Uri contentUri);
     }
@@ -80,24 +74,7 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
-        // Add this line in order for this fragment to handle menu events.
-        setHasOptionsMenu(false);
-    }
-
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.moviesfragment, menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-
-        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -146,21 +123,20 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        // Initialize our content loader
         getLoaderManager().initLoader(MOVIES_LOADER, null, this);
         super.onActivityCreated(savedInstanceState);
     }
 
-    // since we read the list type when we create the loader, all we need to do is restart things
-    public void onListTypeChanged( ) {
+    /**
+     * Since we read the list type when we create the loader, all we need to do is restart things
+     */
+    public void onListTypeChanged() {
         updateMovies();
     }
 
-    public void reloadCursorData( ) {
-        getLoaderManager().restartLoader(MOVIES_LOADER, null, this);
-    }
-
     /**
-     *
+     * Update the movie list by making a call to TMDb API
      */
     private void updateMovies()
     {
@@ -176,9 +152,16 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         }
         else
         {
-            //TODO::Connect to SQL DB
-            Toast.makeText(getContext(), R.string.no_wifi_message, Toast.LENGTH_LONG).show();
+            // If we don't have a connection, try to load the data from the local db
+            reloadCursorData();
         }
+    }
+
+    /**
+     * Reload our cursor when we are notified there has been a data update
+     */
+    public void reloadCursorData() {
+        getLoaderManager().restartLoader(MOVIES_LOADER, null, this);
     }
 
     @Override
@@ -242,8 +225,10 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         super.onPause();
     }
 
-    // Our handler for received Intents. This will be called whenever an Intent
-    // with an action named "custom-event-name" is broadcasted.
+    /**
+     * Our handler for received Intents. This will be called whenever a status event is
+     * broadcast from the MovieDataService
+     */
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {

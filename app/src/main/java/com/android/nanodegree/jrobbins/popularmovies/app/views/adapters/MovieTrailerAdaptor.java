@@ -43,6 +43,6 @@ public class MovieTrailerAdaptor extends ArrayAdapter<MovieTrailer> {
         TextView trailerName = (TextView) convertView.findViewById(R.id.list_item_trailer_name);
         trailerName.setText(movieTrailer.name);
 
-        return super.getView(position, convertView, parent);
+        return convertView;
     }
 }

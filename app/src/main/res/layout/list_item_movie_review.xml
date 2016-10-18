@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="4dp"
+    android:layout_marginBottom="4dp"
+    android:layout_marginLeft="16dp"
+    android:layout_marginRight="16dp"
+    android:gravity="center"
+    >
+
+    <TextView
+        android:id="@+id/list_item_review_author"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:text="Review by Bob"
+        android:textSize="14dp"
+        android:textStyle="normal|bold|italic" />
+
+    <TextView
+        android:id="@+id/list_item_review_content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:text="Well, one off from two of this year's most expected movies alongside 'The Battle of Five Armies'. Like all the Chris Nolan fans, I was equally excited to see the movie on the opening day opening show. But I slightly disappointed that it was not a digital 3D film. I agree, this science-fiction was more dramatized than usual space travel stories does with an adventure-thriller. Almost a 3 hour long stretch movie did not waste much time to take us to the core of the story. Get prepared for this extremely rare voyage into the space with a logical explanation for everything you see on the screen. Well done research for the most matured and intelligent writing. All the credit must go to Nolan brothers. A good sign from Jonathan Nolan, who can make big in the entertainment industry in a future like his brother."
+        android:textSize="12dp"
+        />
+</LinearLayout>
