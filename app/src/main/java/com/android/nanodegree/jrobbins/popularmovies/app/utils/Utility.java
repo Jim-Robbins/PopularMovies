@@ -5,8 +5,12 @@ import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.preference.PreferenceManager;
+import android.view.View;
+import android.widget.ListAdapter;
+import android.widget.ListView;
 
 import com.android.nanodegree.jrobbins.popularmovies.app.R;
+import com.android.nanodegree.jrobbins.popularmovies.app.fragments.DetailFragment;
 import com.android.nanodegree.jrobbins.popularmovies.app.services.MovieDataService;
 
 import org.json.JSONArray;
@@ -21,10 +25,16 @@ public class Utility {
 
     public static String getPreferredMovieList(Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-        return prefs.getString(context.getString(R.string.pref_sort_by_key),
-                context.getString(R.string.pref_sort_by_popular));
+        return prefs.getString(context.getString(R.string.pref_sort_by_key), "");
     }
 
+    public static void setPreferredMovieList(Context context) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString(context.getString(R.string.pref_sort_by_key),
+                context.getString(R.string.pref_sort_by_popular));
+        editor.commit();
+    }
     /**
      * Checking Network is Connected - make sure to setup the android.permission.ACCESS_NETWORK_STATE
      * permission, to verify network availability: https://guides.codepath.com/android/Sending-and-Managing-Network-Requests
@@ -160,4 +170,28 @@ public class Utility {
 
         return value;
     }
+
+    /**
+     * To calculate the total height of all items in ListView call with items = adapter.getCount()
+     * http://stackoverflow.com/questions/3361423/android-get-listview-item-height
+     * @param listView
+     * @param items
+     * @return
+     */
+    public static void setItemHeightofListView(ListView listView, int items) {
+        ListAdapter adapter = listView.getAdapter();
+
+        if(items > 0) {
+            int grossElementHeight = 0;
+            for (int i = 0; i < items; i++) {
+                View childView = adapter.getView(i, null, listView);
+                childView.measure(UNBOUNDED, UNBOUNDED);
+                grossElementHeight += childView.getMeasuredHeight();
+            }
+
+            listView.getLayoutParams().height = grossElementHeight;
+        }
+    }
+    private static final int UNBOUNDED = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED);
+
 }

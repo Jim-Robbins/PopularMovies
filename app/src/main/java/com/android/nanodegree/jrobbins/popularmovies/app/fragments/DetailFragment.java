@@ -265,6 +265,8 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
                         }
                     });
 
+                    Utility.setItemHeightofListView(mTrailersListView, trailerAdaptor.getCount());
+
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -308,6 +310,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
                     ArrayList<MovieReview> movieReviews = parseReviewsJSONArray(jsonReviews.getJSONArray(MOVIE_DB_KEY_RESULTS));
                     MovieReviewAdaptor reviewAdaptor = new MovieReviewAdaptor(getActivity(), movieReviews);
                     mReviewsListView.setAdapter(reviewAdaptor);
+                    Utility.setItemHeightofListView(mReviewsListView, reviewAdaptor.getCount());
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -369,7 +372,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
         // Setup new local broadcast listener
         LocalBroadcastManager.getInstance(getActivity()).registerReceiver((mMessageReceiver),
-                new IntentFilter(MovieDataService.API_RESULT_SUCCESS)
+                new IntentFilter(MovieDataService.API_RESULT_DETAIL_SUCCESS)
         );
     }
 

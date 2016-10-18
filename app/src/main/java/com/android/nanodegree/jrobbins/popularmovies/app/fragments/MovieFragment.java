@@ -7,12 +7,15 @@ import android.content.IntentFilter;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.content.LocalBroadcastManager;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -123,8 +126,16 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        // If first time load we need to wait to get our data before creating our cursor
+        if(TextUtils.isEmpty(Utility.getPreferredMovieList(getActivity())))
+        {
+            Utility.setPreferredMovieList(getActivity());
+            updateMovies();
+        }
+
         // Initialize our content loader
         getLoaderManager().initLoader(MOVIES_LOADER, null, this);
+
         super.onActivityCreated(savedInstanceState);
     }
 
@@ -193,6 +204,13 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
                 null);
     }
 
+    Handler handler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            mMovieGridList.performItemClick(mMovieGridList, 0, mMovieGridList.getItemIdAtPosition(0));
+        }
+    };
+
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         mMovieAdapter.swapCursor(data);
@@ -202,6 +220,8 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
             mMovieGridList.smoothScrollToPosition(mPosition);
         } else {
             data.moveToFirst();
+
+            handler.sendEmptyMessage(0);
         }
     }
 
@@ -214,9 +234,8 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     public void onResume() {
         super.onResume();
         LocalBroadcastManager.getInstance(getActivity()).registerReceiver((mMessageReceiver),
-                new IntentFilter(MovieDataService.API_RESULT_SUCCESS)
+                new IntentFilter(MovieDataService.API_RESULT_LIST_SUCCESS)
         );
-
     }
 
     @Override

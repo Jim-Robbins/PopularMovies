@@ -60,8 +60,8 @@ public class MovieDataService extends IntentService {
     private String MOVIE_DB_DETAIL_VIDEOS = "videos";
     private String MOVIE_DB_DETAIL_REVIEWS = "reviews";
 
-    public static final String API_RESULT_SUCCESS = "MovieDataService.REQUEST_PROCESSED";
-    public static final String API_RESULT_FAIL = "MovieDataService.REQUEST_FAILED";
+    public static final String API_RESULT_LIST_SUCCESS = "MovieDataService.LIST_REQUEST_PROCESSED";
+    public static final String API_RESULT_DETAIL_SUCCESS = "MovieDataService.DETAIL_REQUEST_PROCESSED";
 
     private Uri mUri;
 
@@ -179,8 +179,8 @@ public class MovieDataService extends IntentService {
     /**
      * Send local broadcast to notify listeners the background task is complete
      */
-    private void sendLocalBroadcastResult() {
-        Intent intent = new Intent(API_RESULT_SUCCESS);
+    private void sendLocalBroadcastResult(String resultKey) {
+        Intent intent = new Intent(resultKey);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 
@@ -201,7 +201,7 @@ public class MovieDataService extends IntentService {
         parseMovieListResultsJSONintoDB(movieDataJsonStr);
 
         // Notify the UI data is ready
-        sendLocalBroadcastResult();
+        sendLocalBroadcastResult(API_RESULT_LIST_SUCCESS);
     }
 
     /**
@@ -338,7 +338,7 @@ public class MovieDataService extends IntentService {
         populateMovieDetails(contentValues);
 
         // Notify the UI data is ready
-        sendLocalBroadcastResult();
+        sendLocalBroadcastResult(API_RESULT_DETAIL_SUCCESS);
     }
 
     /**

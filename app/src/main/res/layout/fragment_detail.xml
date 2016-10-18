@@ -176,7 +176,7 @@
             android:text="@string/detail_reviews" />
         <ListView
             android:layout_width="match_parent"
-            android:layout_height="120dp"
+            android:layout_height="200dp"
             android:id="@+id/list_reviews">
 
         </ListView>
