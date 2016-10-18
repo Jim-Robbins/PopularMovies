@@ -18,7 +18,7 @@ public class MainActivity extends AppCompatActivity implements MovieFragment.Cal
     private final String LOG_TAG = MainActivity.class.getSimpleName();
     private static final String DETAILFRAGMENT_TAG = "DFTAG";
 
-    private boolean mTwoPane;
+    public static boolean mTwoPane;
     private String mSortBy;
 
     @Override

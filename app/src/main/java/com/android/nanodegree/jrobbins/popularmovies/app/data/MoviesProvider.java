@@ -28,20 +28,24 @@ public class MoviesProvider extends ContentProvider {
     public static final int MOVIES_LIST_FILTER = 103;
     public static final int MOVIE_FAVORITES = 200;
 
-    private static final SQLiteQueryBuilder sMoviesByFavoriteQueryBuilder;
+    private static final SQLiteQueryBuilder sMovieDetailQueryBuilder;
     static{
-        sMoviesByFavoriteQueryBuilder = new SQLiteQueryBuilder();
+        sMovieDetailQueryBuilder = new SQLiteQueryBuilder();
 
         //This is an inner join which looks like
         //movies LEFT OUTER JOIN favorite_movies ON movies.movie_id = favorite_movies.movie_id
-        sMoviesByFavoriteQueryBuilder.setTables(
+        sMovieDetailQueryBuilder.setTables(
                 MoviesContract.MovieEntry.TABLE_NAME + " LEFT OUTER JOIN " +
                         MoviesContract.FavoritesEntry.TABLE_NAME +
                         " ON " + MoviesContract.MovieEntry.TABLE_NAME +
                         "." + MoviesContract.MovieEntry.COLUMN_MOVIE_ID +
                         " = " + MoviesContract.FavoritesEntry.TABLE_NAME +
-                        "." + MoviesContract.FavoritesEntry.COLUMN_MOVIE_ID);
+                        "." + MoviesContract.FavoritesEntry.COLUMN_IS_FAVORITE);
     }
+
+    private static final String sMovieDetailSelection =
+            MoviesContract.MovieEntry.TABLE_NAME +
+                    "." + MoviesContract.MovieEntry.COLUMN_MOVIE_ID + " = ? ";
 
     private static final SQLiteQueryBuilder sMovieListsByTypeQueryBuilder;
     static{
@@ -62,16 +66,6 @@ public class MoviesProvider extends ContentProvider {
             MoviesContract.MovieListsEntry.TABLE_NAME+
                     "." + MoviesContract.MovieListsEntry.COLUMN_LIST_ID + " = ? ";
 
-    private static final SQLiteQueryBuilder sMovieQueryBuilder;
-        static {
-            sMovieQueryBuilder = new SQLiteQueryBuilder();
-            sMovieQueryBuilder.setTables(
-                MoviesContract.MovieEntry.TABLE_NAME );
-    }
-
-    private static final String sMovieSelection =
-            MoviesContract.MovieEntry.COLUMN_MOVIE_ID + " = ? ";
-
     static UriMatcher buildUriMatcher() {
         // I know what you're thinking.  Why create a UriMatcher when you can use regular
         // expressions instead?  Because you're not crazy, that's why.
@@ -87,7 +81,7 @@ public class MoviesProvider extends ContentProvider {
         matcher.addURI(authority, MoviesContract.PATH_MOVIES + "/#", MOVIES_ROW_ID);
         matcher.addURI(authority, MoviesContract.PATH_MOVIES + "/" + MoviesContract.PATH_MOVIES_DETAIL + "/*", MOVIES_MOVIE_ID);
         matcher.addURI(authority, MoviesContract.PATH_MOVIES + "/" + MoviesContract.PATH_MOVIES_LIST + "/*", MOVIES_LIST_FILTER);
-        matcher.addURI(authority, MoviesContract.PATH_MOVIES + "/" + MoviesContract.PATH_MOVIES_FAVORITES, MOVIE_FAVORITES);
+        matcher.addURI(authority, MoviesContract.PATH_MOVIES_FAVORITES + "/*", MOVIE_FAVORITES);
         return matcher;
     }
 
@@ -113,7 +107,7 @@ public class MoviesProvider extends ContentProvider {
             case MOVIES_LIST_FILTER:
                 return MoviesContract.MovieEntry.CONTENT_TYPE;
             case MOVIE_FAVORITES:
-                return MoviesContract.MovieEntry.CONTENT_TYPE;
+                return MoviesContract.MovieEntry.CONTENT_ITEM_TYPE;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -173,9 +167,9 @@ public class MoviesProvider extends ContentProvider {
     private Cursor getMovieByMovieId(Uri uri, String[] projection, String sortOrder) {
         String movie_id = MoviesContract.MovieEntry.getMovieIdFromUri(uri);
 
-        return sMovieQueryBuilder.query(mOpenHelper.getReadableDatabase(),
+        return sMovieDetailQueryBuilder.query(mOpenHelper.getReadableDatabase(),
                 projection,
-                sMovieSelection,
+                sMovieDetailSelection,
                 new String[]{movie_id},
                 null,
                 null,
@@ -204,7 +198,7 @@ public class MoviesProvider extends ContentProvider {
             case MOVIE_FAVORITES: {
                 long _id = db.insert(MoviesContract.FavoritesEntry.TABLE_NAME, null, values);
                 if ( _id > 0 )
-                    returnUri = MoviesContract.FavoritesEntry.buildFavoriteUri(_id);
+                    returnUri = MoviesContract.FavoritesEntry.buildFavoriteUri(values.getAsString(MoviesContract.FavoritesEntry.COLUMN_IS_FAVORITE));
                 else
                     throw new android.database.SQLException("Failed to insert row into " + uri);
                 break;
@@ -297,6 +291,13 @@ public class MoviesProvider extends ContentProvider {
                 String listType = MoviesContract.MovieEntry.getListTypeFromUri(uri);
                 insertListType(db, movieId, listType);
                 break;
+            case MOVIE_FAVORITES:
+                try {
+                    returnId = db.replaceOrThrow(MoviesContract.FavoritesEntry.TABLE_NAME, null, values);
+                } catch (SQLiteConstraintException e) {
+                    throw e;
+                }
+                break;
         }
 
         return returnId;
@@ -358,10 +359,6 @@ public class MoviesProvider extends ContentProvider {
         int rowsUpdated;
 
         switch (match) {
-//            case MOVIES:
-//                rowsUpdated = db.update(MoviesContract.MovieEntry.TABLE_NAME, values, selection,
-//                        selectionArgs);
-//                break;
             case MOVIES_LIST_FILTER:
                 rowsUpdated = db.update(MoviesContract.MovieEntry.TABLE_NAME, values, selection,
                         selectionArgs);

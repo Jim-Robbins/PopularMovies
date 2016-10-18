@@ -1,6 +1,7 @@
 package com.android.nanodegree.jrobbins.popularmovies.app.fragments;
 
 import android.content.BroadcastReceiver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -21,14 +22,16 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
 import com.android.nanodegree.jrobbins.popularmovies.app.BuildConfig;
 import com.android.nanodegree.jrobbins.popularmovies.app.R;
+import com.android.nanodegree.jrobbins.popularmovies.app.data.MoviesContract;
 import com.android.nanodegree.jrobbins.popularmovies.app.data.MoviesContract.MovieEntry;
+import com.android.nanodegree.jrobbins.popularmovies.app.data.MoviesContract.FavoritesEntry;
 import com.android.nanodegree.jrobbins.popularmovies.app.models.MovieReview;
 import com.android.nanodegree.jrobbins.popularmovies.app.models.MovieTrailer;
 import com.android.nanodegree.jrobbins.popularmovies.app.services.MovieDataService;
@@ -57,6 +60,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     private static final int DETAIL_LOADER = 0;
 
     private Uri mUri;
+    private Boolean mIsFavorite;
 
     private static final String[] DETAIL_COLUMNS = {
             MovieEntry.TABLE_NAME + "." + MovieEntry.COLUMN_MOVIE_ID,
@@ -74,7 +78,8 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
             MovieEntry.COLUMN_VOTE_COUNT,
             MovieEntry.COLUMN_GENRES,
             MovieEntry.COLUMN_TRAILERS,
-            MovieEntry.COLUMN_REVIEWS
+            MovieEntry.COLUMN_REVIEWS,
+            FavoritesEntry.COLUMN_IS_FAVORITE
     };
 
     // These indices are tied to DETAIL_COLUMNS.  If DETAIL_COLUMNS changes, these
@@ -95,6 +100,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     public static final int COL_MOVIE_GENRES = 13;
     public static final int COL_MOVIE_TRAILERS = 14;
     public static final int COL_MOVIE_REVIEWS = 15;
+    public static final int COL_MOVIE_FAVORITE = 16;
 
     private TextView mTitleView;
     private TextView mVoteAvgView;
@@ -108,7 +114,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     private TextView mImdbView;
     private ListView mTrailersListView;
     private ListView mReviewsListView;
-    private Button mFavoriteButton;
+    private ImageButton mFavoriteButton;
 
     public DetailFragment() {
     }
@@ -140,7 +146,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         mCompanyView = (TextView) rootView.findViewById(R.id.textview_movie_production);
         mGenresView = (TextView) rootView.findViewById(R.id.textview_movie_genres);
         mImdbView = (TextView) rootView.findViewById(R.id.textview_movie_imdb);
-        mFavoriteButton = (Button) rootView.findViewById(R.id.button_mark_favorite);
+        mFavoriteButton = (ImageButton) rootView.findViewById(R.id.imagebutton_mark_favorite);
 
         mTrailersListView = (ListView) rootView.findViewById(R.id.list_trailers);
         mReviewsListView = (ListView) rootView.findViewById(R.id.list_reviews);
@@ -197,7 +203,66 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
             setTrailersListView(data.getString(COL_MOVIE_TRAILERS));
             setReviewsListView(data.getString(COL_MOVIE_REVIEWS));
             loadPosterIntoImageView(data.getString(COL_MOVIE_POSTER));
+
+            mIsFavorite = (data.getString(COL_MOVIE_FAVORITE) != null);
+            toggleFavoriteButton();
+            addListenerOnButton();
         }
+    }
+
+    private void addListenerOnButton() {
+        mFavoriteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                updateFavoriteStatus();
+            }
+        });
+    }
+
+    private void toggleFavoriteButton()
+    {
+        String iconName = (mIsFavorite) ? "btn_star_big_on" : "btn_star_big_off";
+        mFavoriteButton.setImageResource(getResources().getIdentifier("android:drawable/"+iconName, null, null));
+    }
+
+    private void updateFavoriteStatus() {
+        String movieId = MovieEntry.getMovieIdFromUri(mUri);
+        Uri favoriteUri = MoviesContract.FavoritesEntry.buildFavoriteUri(movieId);
+
+        if (mIsFavorite) {
+            deleteMovieFavorite(movieId, favoriteUri);
+        } else {
+            addMovieFavorite(movieId, favoriteUri);
+        }
+
+        mIsFavorite = !mIsFavorite;
+        toggleFavoriteButton();
+    }
+
+    private void deleteMovieFavorite(String movieId, Uri favoriteUri) {
+
+        String sSelection = FavoritesEntry.COLUMN_IS_FAVORITE + " = ? ";
+
+        int rowId = getActivity().getContentResolver().delete(
+                favoriteUri,
+                sSelection,
+                new String[]{movieId}
+        );
+
+        Log.d(LOG_TAG, "MovieDB Detail update Complete. " + rowId + " deleted");
+    }
+
+    private void addMovieFavorite(String movieId, Uri favoriteUri) {
+
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(FavoritesEntry.COLUMN_IS_FAVORITE, movieId);
+
+        Uri resultUri = getActivity().getContentResolver().insert(
+                favoriteUri,
+                contentValues
+        );
+
+        Log.d(LOG_TAG, "Favorite added:" + resultUri.toString());
     }
 
     /**

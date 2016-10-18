@@ -24,6 +24,7 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.ListView;
 
+import com.android.nanodegree.jrobbins.popularmovies.app.MainActivity;
 import com.android.nanodegree.jrobbins.popularmovies.app.R;
 import com.android.nanodegree.jrobbins.popularmovies.app.data.MoviesContract;
 import com.android.nanodegree.jrobbins.popularmovies.app.services.MovieDataService;
@@ -221,7 +222,9 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         } else {
             data.moveToFirst();
 
-            handler.sendEmptyMessage(0);
+            if(MainActivity.mTwoPane && data.getCount() > 0) {
+                handler.sendEmptyMessage(0);
+            }
         }
     }
 

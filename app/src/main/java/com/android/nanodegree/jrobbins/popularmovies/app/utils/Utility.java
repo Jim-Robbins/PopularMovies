@@ -10,8 +10,6 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 
 import com.android.nanodegree.jrobbins.popularmovies.app.R;
-import com.android.nanodegree.jrobbins.popularmovies.app.fragments.DetailFragment;
-import com.android.nanodegree.jrobbins.popularmovies.app.services.MovieDataService;
 
 import org.json.JSONArray;
 import org.json.JSONException;

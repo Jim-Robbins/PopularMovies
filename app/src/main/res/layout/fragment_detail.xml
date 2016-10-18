@@ -81,19 +81,11 @@
                     tools:text="8.5/10"
                     android:layout_marginBottom="8dp"
                     android:textColor="?android:attr/textColorPrimary" />
-                <Button
-                    android:id="@+id/button_mark_favorite"
-                    android:layout_width="75dp"
-                    android:layout_height="30dp"
-                    android:text="@string/detail_button_mark_as_favorite"
-                    android:onClick=""
-                    android:textAppearance="@style/TextAppearance.AppCompat.Button"
-                    android:background="@android:color/holo_blue_light"
-                    android:textSize="8sp"
-                    android:paddingLeft="8dp"
-                    android:paddingRight="8dp"
-                    android:textColor="?android:attr/textColorSecondary" />
-
+                <ImageButton
+                    android:id="@+id/imagebutton_mark_favorite"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@android:drawable/btn_star_big_off" />
             </LinearLayout>
 
         </LinearLayout>

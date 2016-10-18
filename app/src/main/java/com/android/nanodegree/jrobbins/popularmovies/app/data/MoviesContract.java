@@ -46,15 +46,15 @@ public class MoviesContract {
         public static final String TABLE_NAME = "favorite_movies";
 
         // The movie id that user selects as a favorite
-        public static final String COLUMN_MOVIE_ID = "movie_id";
+        public static final String COLUMN_IS_FAVORITE = "is_favorite";
 
         /**
          * Build uri to access record in favorites table
-         * @param id movie_id
+         * @param movie_id
          * @return Uri
          */
-        public static Uri buildFavoriteUri(long id) {
-            return ContentUris.withAppendedId(CONTENT_URI, id);
+        public static Uri buildFavoriteUri(String movie_id) {
+            return CONTENT_URI.buildUpon().appendPath(movie_id).build();
         }
     }
 

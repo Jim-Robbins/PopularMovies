@@ -37,7 +37,7 @@ public class MoviesDbHelper extends SQLiteOpenHelper {
         // Create a table to hold favorites.  A favorite consists of a boolean supplied by the user and an movie id
         final String SQL_CREATE_FAVORITES_TABLE = "CREATE TABLE " + FavoritesEntry.TABLE_NAME + "(" +
                 FavoritesEntry._ID + " INTEGER PRIMARY KEY," +
-                FavoritesEntry.COLUMN_MOVIE_ID + " TEXT UNIQUE NOT NULL " +
+                FavoritesEntry.COLUMN_IS_FAVORITE + " TEXT UNIQUE NOT NULL " +
                 " );";
 
         db.execSQL(SQL_CREATE_FAVORITES_TABLE);
