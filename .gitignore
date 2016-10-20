@@ -11,6 +11,7 @@
 bin/
 gen/
 build/
+.idea/
 
 # local configuration file (for Android sdk path, etc)
 local.properties
