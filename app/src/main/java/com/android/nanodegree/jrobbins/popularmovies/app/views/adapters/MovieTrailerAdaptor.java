@@ -14,10 +14,8 @@ import com.android.nanodegree.jrobbins.popularmovies.app.models.MovieTrailer;
 
 import java.util.List;
 
-import static android.R.attr.resource;
-
 /**
- * Created by jim on 10/17/16.
+ * Custom Array Cursor for displaying Movie Trailers
  */
 
 public class MovieTrailerAdaptor extends ArrayAdapter<MovieTrailer> {

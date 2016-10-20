@@ -227,7 +227,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
     private void updateFavoriteStatus() {
         String movieId = MovieEntry.getMovieIdFromUri(mUri);
-        Uri favoriteUri = MoviesContract.FavoritesEntry.buildFavoriteUri(movieId);
+        Uri favoriteUri = MoviesContract.FavoritesEntry.buildFavoriteWithIdUri(movieId);
 
         if (mIsFavorite) {
             deleteMovieFavorite(movieId, favoriteUri);

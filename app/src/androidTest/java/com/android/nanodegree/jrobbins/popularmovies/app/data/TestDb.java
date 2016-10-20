@@ -40,11 +40,6 @@ public class TestDb extends AndroidTestCase {
     }
 
     /*
-        Students: Uncomment this test once you've written the code to create the movies_list
-        table.  Note that you will have to have chosen the same column names that I did in
-        my solution for this test to compile, so if you haven't yet done that, this is
-        a good time to change your column names to match mine.
-
         Note that this only tests that the movies_list table has the correct columns, since we
         give you the code for the Movies table.  This test does not look at the
      */
@@ -54,9 +49,8 @@ public class TestDb extends AndroidTestCase {
         // Android metadata (db version information)
         final HashSet<String> tableNameHashSet = new HashSet<String>();
         tableNameHashSet.add(MoviesContract.MovieEntry.TABLE_NAME);
-//        tableNameHashSet.add(MoviesContract.FavoriteEntry.TABLE_NAME);
-//        tableNameHashSet.add(MoviesContract.MovieListsEntry.TABLE_NAME);
-//        tableNameHashSet.add(MoviesContract.MovieDetailsEntry.TABLE_NAME);
+        tableNameHashSet.add(MoviesContract.FavoritesEntry.TABLE_NAME);
+        tableNameHashSet.add(MoviesContract.MovieListsEntry.TABLE_NAME);
 
         mContext.deleteDatabase(MoviesDbHelper.DATABASE_NAME);
         SQLiteDatabase db = new MoviesDbHelper(
@@ -79,13 +73,6 @@ public class TestDb extends AndroidTestCase {
         assertTrue("Error: Your database was created without both the movies_list entry and Movies entry tables",
                 tableNameHashSet.isEmpty());
 
-        // now, do our tables contain the correct columns?
-        c = db.rawQuery("PRAGMA table_info(" + MoviesContract.MovieEntry.TABLE_NAME + ")",
-                null);
-
-        assertTrue("Error: This means that we were unable to query the database for table information.",
-                c.moveToFirst());
-
         // Build a HashSet of all of the column names we want to look for
         final HashSet<String> moviesColumnHashSet = new HashSet<String>();
         moviesColumnHashSet.add(MoviesContract.MovieEntry._ID);
@@ -96,25 +83,18 @@ public class TestDb extends AndroidTestCase {
         moviesColumnHashSet.add(MoviesContract.MovieEntry.COLUMN_OVERVIEW);
         moviesColumnHashSet.add(MoviesContract.MovieEntry.COLUMN_VOTE_AVG);
         moviesColumnHashSet.add(MoviesContract.MovieEntry.COLUMN_RELEASE_DATE);
-        moviesColumnHashSet.add(MoviesContract.MovieEntry.COLUMN_GENRE_IDS);
+        moviesColumnHashSet.add(MoviesContract.MovieEntry.COLUMN_GENRES);
+        moviesColumnHashSet.add(MoviesContract.MovieEntry.COLUMN_CREATE_DATE);
+        moviesColumnHashSet.add(MoviesContract.MovieEntry.COLUMN_HOMEPAGE);
+        moviesColumnHashSet.add(MoviesContract.MovieEntry.COLUMN_IMDB_ID);
+        moviesColumnHashSet.add(MoviesContract.MovieEntry.COLUMN_POPULARITY);
+        moviesColumnHashSet.add(MoviesContract.MovieEntry.COLUMN_PRODUCTION_COMPANIES);
+        moviesColumnHashSet.add(MoviesContract.MovieEntry.COLUMN_VOTE_COUNT);
+        moviesColumnHashSet.add(MoviesContract.MovieEntry.COLUMN_REVIEWS);
+        moviesColumnHashSet.add(MoviesContract.MovieEntry.COLUMN_RUNTIME);
+        moviesColumnHashSet.add(MoviesContract.MovieEntry.COLUMN_TRAILERS);
 
-        int columnNameIndex = c.getColumnIndex("name");
-        do {
-            String columnName = c.getString(columnNameIndex);
-            moviesColumnHashSet.remove(columnName);
-        } while(c.moveToNext());
-
-        // if this fails, means that the database doesn't contain all of the required entry columns
-        assertTrue("Error: The database table " + MoviesContract.MovieEntry.TABLE_NAME +
-                "doesn't contain all of the required entry columns",
-                moviesColumnHashSet.isEmpty());
-
-        // now, do our tables contain the correct columns?
-        c = db.rawQuery("PRAGMA table_info(" + MoviesContract.MovieListsEntry.TABLE_NAME + ")",
-                null);
-
-        assertTrue("Error: This means that we were unable to query the database for table information.",
-                c.moveToFirst());
+        checkColumns(MoviesContract.MovieEntry.TABLE_NAME, c, db, moviesColumnHashSet);
 
         // Build a HashSet of all of the column names we want to look for
         final HashSet<String> moviesListColumnHashSet = new HashSet<String>();
@@ -122,24 +102,41 @@ public class TestDb extends AndroidTestCase {
         moviesListColumnHashSet.add(MoviesContract.MovieListsEntry.COLUMN_MOVIE_ID);
         moviesListColumnHashSet.add(MoviesContract.MovieListsEntry.COLUMN_LIST_ID);
 
-        columnNameIndex = c.getColumnIndex("name");
-        do {
-            String columnName = c.getString(columnNameIndex);
-            moviesListColumnHashSet.remove(columnName);
-        } while(c.moveToNext());
+        checkColumns(MoviesContract.MovieListsEntry.TABLE_NAME, c, db, moviesListColumnHashSet);
 
-        // if this fails, means that the database doesn't contain all of the required entry columns
-        assertTrue("Error: The database table " + MoviesContract.MovieListsEntry.TABLE_NAME +
-                ", doesn't contain all of the required entry columns",
-                moviesColumnHashSet.isEmpty());
+        // Build a HashSet of all of the column names we want to look for
+        final HashSet<String> favoritesColumnHashSet = new HashSet<String>();
+        favoritesColumnHashSet.add(MoviesContract.FavoritesEntry._ID);
+        favoritesColumnHashSet.add(MoviesContract.FavoritesEntry.COLUMN_IS_FAVORITE);
 
+        checkColumns(MoviesContract.FavoritesEntry.TABLE_NAME, c, db, favoritesColumnHashSet);
 
         db.close();
     }
 
+    private void checkColumns(String tableName, Cursor c, SQLiteDatabase db, HashSet<String> columnHashSet)
+    {
+        // now, do our tables contain the correct columns?
+        c = db.rawQuery("PRAGMA table_info(" + tableName + ")",
+                null);
+
+        assertTrue("Error: This means that we were unable to query the database for table information.",
+                c.moveToFirst());
+
+        int columnNameIndex = c.getColumnIndex("name");
+        do {
+            String columnName = c.getString(columnNameIndex);
+            columnHashSet.remove(columnName);
+        } while(c.moveToNext());
+
+        // if this fails, means that the database doesn't contain all of the required entry columns
+        assertTrue("Error: The database table " + tableName +
+                        ", doesn't contain all of the required entry columns",
+                columnHashSet.isEmpty());
+    }
+
     /*
-        Students:  Here is where you will build code to test that we can insert and query the
-        database.  We've done a lot of work for you.  You'll want to look in TestUtilities
+        Test that we can insert and query the database.  Look in TestUtilities
         where you can use the "createMovieValues" function.  You can
         also make use of the validateCurrentRecord function from within TestUtilities.
      */

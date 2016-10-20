@@ -6,17 +6,15 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.android.nanodegree.jrobbins.popularmovies.app.R;
 import com.android.nanodegree.jrobbins.popularmovies.app.models.MovieReview;
-import com.android.nanodegree.jrobbins.popularmovies.app.models.MovieTrailer;
 
 import java.util.List;
 
 /**
- * Created by jim on 10/17/16.
+ * Custom Array Cursor for displaying Movie Reviews
  */
 
 public class MovieReviewAdaptor extends ArrayAdapter<MovieReview> {

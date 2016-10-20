@@ -12,7 +12,7 @@ import com.android.nanodegree.jrobbins.popularmovies.app.data.MoviesContract.*;
 
 public class MoviesDbHelper extends SQLiteOpenHelper {
     // If you change the database schema, you must increment the database version.
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 1;
 
     static final String DATABASE_NAME = "popular_movies.db";
 

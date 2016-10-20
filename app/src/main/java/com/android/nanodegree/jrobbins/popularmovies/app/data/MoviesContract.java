@@ -1,11 +1,8 @@
 package com.android.nanodegree.jrobbins.popularmovies.app.data;
 
 import android.content.ContentResolver;
-import android.content.ContentUris;
 import android.net.Uri;
 import android.provider.BaseColumns;
-
-import static android.R.attr.id;
 
 /**
  * Created by jim.robbins on 9/29/16.
@@ -53,8 +50,12 @@ public class MoviesContract {
          * @param movie_id
          * @return Uri
          */
-        public static Uri buildFavoriteUri(String movie_id) {
+        public static Uri buildFavoriteWithIdUri(String movie_id) {
             return CONTENT_URI.buildUpon().appendPath(movie_id).build();
+        }
+
+        public static Uri buildFavoritesUri() {
+            return CONTENT_URI;
         }
     }
 
@@ -114,6 +115,9 @@ public class MoviesContract {
 
     /* Inner class that defines the table contents of the popular filtered table */
     public static final class MovieListsEntry implements BaseColumns {
+
+        public static final Uri CONTENT_URI =
+                MovieEntry.CONTENT_URI.buildUpon().appendPath(PATH_MOVIES_FAVORITES).build();
 
         // Table name
         public static final String TABLE_NAME = "movie_lists";

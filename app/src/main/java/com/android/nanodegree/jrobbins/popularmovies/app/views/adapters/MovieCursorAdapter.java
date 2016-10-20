@@ -14,7 +14,9 @@ import com.android.nanodegree.jrobbins.popularmovies.app.fragments.MovieFragment
 import com.android.nanodegree.jrobbins.popularmovies.app.services.MovieDataService;
 import com.squareup.picasso.Picasso;
 
-
+/**
+ * Custom cursor adapter for displaying the movie posters grid list
+ */
 public class MovieCursorAdapter extends CursorAdapter {
     private static final String LOG_TAG = MovieCursorAdapter.class.getSimpleName();
 

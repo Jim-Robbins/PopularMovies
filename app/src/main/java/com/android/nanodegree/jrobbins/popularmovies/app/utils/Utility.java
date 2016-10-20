@@ -21,11 +21,20 @@ import java.util.List;
 
 public class Utility {
 
+    /**
+     * Load the movie listType stored preference
+     * @param context
+     * @return the string value of the listType
+     */
     public static String getPreferredMovieList(Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         return prefs.getString(context.getString(R.string.pref_sort_by_key), "");
     }
 
+    /**
+     * Set the stored preference, used only on first time load to default the setting.
+     * @param context
+     */
     public static void setPreferredMovieList(Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         SharedPreferences.Editor editor = prefs.edit();

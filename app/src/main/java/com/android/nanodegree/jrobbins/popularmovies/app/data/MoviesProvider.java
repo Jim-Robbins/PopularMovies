@@ -26,8 +26,12 @@ public class MoviesProvider extends ContentProvider {
     public static final int MOVIES_ROW_ID = 101;
     public static final int MOVIES_MOVIE_ID = 102;
     public static final int MOVIES_LIST_FILTER = 103;
-    public static final int MOVIE_FAVORITES = 200;
+    public static final int MOVIE_FAVORITES_LIST = 200;
+    public static final int MOVIE_FAVORITE_ID = 201;
 
+    /**
+     * Table definition for getting our movie details, LEFT OUTER JOIN favorites
+     */
     private static final SQLiteQueryBuilder sMovieDetailQueryBuilder;
     static{
         sMovieDetailQueryBuilder = new SQLiteQueryBuilder();
@@ -43,10 +47,23 @@ public class MoviesProvider extends ContentProvider {
                         "." + MoviesContract.FavoritesEntry.COLUMN_IS_FAVORITE);
     }
 
+    /**
+     * This selection argument is for selecting a specific movie from the movies_list
+     */
     private static final String sMovieDetailSelection =
             MoviesContract.MovieEntry.TABLE_NAME +
                     "." + MoviesContract.MovieEntry.COLUMN_MOVIE_ID + " = ? ";
 
+    /**
+     * This selection argument is for selecting all the movies listed in our favorite_movies table
+     */
+    private static final String sMovieFavoritesSelection =
+            MoviesContract.FavoritesEntry.TABLE_NAME +
+                    "." + MoviesContract.FavoritesEntry.COLUMN_IS_FAVORITE + " IS NOT NULL ";
+
+    /**
+     * This definition is for linking our movies table via LEFT OUTER JOIN to our movie_lists
+     */
     private static final SQLiteQueryBuilder sMovieListsByTypeQueryBuilder;
     static{
         sMovieListsByTypeQueryBuilder = new SQLiteQueryBuilder();
@@ -62,26 +79,32 @@ public class MoviesProvider extends ContentProvider {
                         "." + MoviesContract.MovieListsEntry.COLUMN_MOVIE_ID);
     }
 
+    /**
+     * This selection argument allows us to filter our movie list buy list type
+     */
     private static final String sMovieListByTypeSelection =
             MoviesContract.MovieListsEntry.TABLE_NAME+
                     "." + MoviesContract.MovieListsEntry.COLUMN_LIST_ID + " = ? ";
 
+    /**
+     * Check the incoming URIs to make sure they match valid calls
+     * @return
+     */
     static UriMatcher buildUriMatcher() {
-        // I know what you're thinking.  Why create a UriMatcher when you can use regular
-        // expressions instead?  Because you're not crazy, that's why.
-
         // All paths added to the UriMatcher have a corresponding code to return when a match is
         // found.  The code passed into the constructor represents the code to return for the root
         // URI.  It's common to use NO_MATCH as the code for this case.
         final UriMatcher matcher = new UriMatcher(UriMatcher.NO_MATCH);
         final String authority = MoviesContract.CONTENT_AUTHORITY;
 
-        // For each type of URI you want to add, create a corresponding code.
+        // For each type of URI create a corresponding code.
         matcher.addURI(authority, MoviesContract.PATH_MOVIES, MOVIES);
         matcher.addURI(authority, MoviesContract.PATH_MOVIES + "/#", MOVIES_ROW_ID);
         matcher.addURI(authority, MoviesContract.PATH_MOVIES + "/" + MoviesContract.PATH_MOVIES_DETAIL + "/*", MOVIES_MOVIE_ID);
         matcher.addURI(authority, MoviesContract.PATH_MOVIES + "/" + MoviesContract.PATH_MOVIES_LIST + "/*", MOVIES_LIST_FILTER);
-        matcher.addURI(authority, MoviesContract.PATH_MOVIES_FAVORITES + "/*", MOVIE_FAVORITES);
+        matcher.addURI(authority, MoviesContract.PATH_MOVIES_FAVORITES + "/*", MOVIE_FAVORITE_ID);
+        matcher.addURI(authority, MoviesContract.PATH_MOVIES_FAVORITES, MOVIE_FAVORITES_LIST);
+
         return matcher;
     }
 
@@ -106,8 +129,10 @@ public class MoviesProvider extends ContentProvider {
                 return MoviesContract.MovieEntry.CONTENT_TYPE;
             case MOVIES_LIST_FILTER:
                 return MoviesContract.MovieEntry.CONTENT_TYPE;
-            case MOVIE_FAVORITES:
+            case MOVIE_FAVORITE_ID:
                 return MoviesContract.MovieEntry.CONTENT_ITEM_TYPE;
+            case MOVIE_FAVORITES_LIST:
+                return MoviesContract.MovieEntry.CONTENT_TYPE;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -127,6 +152,11 @@ public class MoviesProvider extends ContentProvider {
             // "movies/list/*"
             case MOVIES_LIST_FILTER: {
                 retCursor = getMoviesByFilter(uri, projection, sortOrder);
+                break;
+            }
+            // "favorites/"
+            case MOVIE_FAVORITES_LIST: {
+                retCursor = getMovieFavorites(projection, sortOrder);
                 break;
             }
             // "movies"
@@ -149,6 +179,9 @@ public class MoviesProvider extends ContentProvider {
         return retCursor;
     }
 
+    /**
+     * Load list of movies from db filtering by movie list type
+     */
     private Cursor getMoviesByFilter(Uri uri, String[] projection, String sortOrder) {
         String listIdFromUri = MoviesContract.MovieEntry.getListTypeFromUri(uri);
         Log.d(LOG_TAG,listIdFromUri);
@@ -159,11 +192,14 @@ public class MoviesProvider extends ContentProvider {
                 new String[]{listIdFromUri},
                 null,
                 null,
-                null
+                sortOrder
         );
         return cursor;
     }
 
+    /**
+     * Load specific movie record to display details
+     */
     private Cursor getMovieByMovieId(Uri uri, String[] projection, String sortOrder) {
         String movie_id = MoviesContract.MovieEntry.getMovieIdFromUri(uri);
 
@@ -171,6 +207,21 @@ public class MoviesProvider extends ContentProvider {
                 projection,
                 sMovieDetailSelection,
                 new String[]{movie_id},
+                null,
+                null,
+                sortOrder
+        );
+    }
+
+    /**
+     * Load list of movies marked as favorites, based on LEFT OUTER JOIN where is_favorite is not null
+     */
+    private Cursor getMovieFavorites(String[] projection, String sortOrder) {
+
+        return sMovieDetailQueryBuilder.query(mOpenHelper.getReadableDatabase(),
+                projection,
+                sMovieFavoritesSelection,
+                null,
                 null,
                 null,
                 sortOrder
@@ -195,10 +246,10 @@ public class MoviesProvider extends ContentProvider {
                 }
                 break;
             }
-            case MOVIE_FAVORITES: {
+            case MOVIE_FAVORITE_ID: {
                 long _id = db.insert(MoviesContract.FavoritesEntry.TABLE_NAME, null, values);
                 if ( _id > 0 )
-                    returnUri = MoviesContract.FavoritesEntry.buildFavoriteUri(values.getAsString(MoviesContract.FavoritesEntry.COLUMN_IS_FAVORITE));
+                    returnUri = MoviesContract.FavoritesEntry.buildFavoriteWithIdUri(values.getAsString(MoviesContract.FavoritesEntry.COLUMN_IS_FAVORITE));
                 else
                     throw new android.database.SQLException("Failed to insert row into " + uri);
                 break;
@@ -291,7 +342,7 @@ public class MoviesProvider extends ContentProvider {
                 String listType = MoviesContract.MovieEntry.getListTypeFromUri(uri);
                 insertListType(db, movieId, listType);
                 break;
-            case MOVIE_FAVORITES:
+            case MOVIE_FAVORITE_ID:
                 try {
                     returnId = db.replaceOrThrow(MoviesContract.FavoritesEntry.TABLE_NAME, null, values);
                 } catch (SQLiteConstraintException e) {
@@ -333,13 +384,17 @@ public class MoviesProvider extends ContentProvider {
                 rowsDeleted = db.delete(
                         MoviesContract.MovieEntry.TABLE_NAME, selection, selectionArgs);
                 break;
-            case MOVIE_FAVORITES:
+            case MOVIE_FAVORITE_ID:
                 rowsDeleted = db.delete(
                         MoviesContract.FavoritesEntry.TABLE_NAME, selection, selectionArgs);
                 break;
             case MOVIES_LIST_FILTER:
                 rowsDeleted = db.delete(
                         MoviesContract.MovieListsEntry.TABLE_NAME, selection, selectionArgs);
+                break;
+            case MOVIE_FAVORITES_LIST:
+                rowsDeleted = db.delete(
+                        MoviesContract.FavoritesEntry.TABLE_NAME, selection, selectionArgs);
                 break;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);

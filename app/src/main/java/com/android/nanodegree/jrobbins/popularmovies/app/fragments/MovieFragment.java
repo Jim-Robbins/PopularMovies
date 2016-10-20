@@ -127,8 +127,10 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+
+        String listTypeSetting = Utility.getPreferredMovieList(getActivity());
         // If first time load we need to wait to get our data before creating our cursor
-        if(TextUtils.isEmpty(Utility.getPreferredMovieList(getActivity())))
+        if(TextUtils.isEmpty(listTypeSetting))
         {
             Utility.setPreferredMovieList(getActivity());
             updateMovies();
@@ -136,6 +138,7 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
 
         // Initialize our content loader
         getLoaderManager().initLoader(MOVIES_LOADER, null, this);
+        setActivityTitle(listTypeSetting);
 
         super.onActivityCreated(savedInstanceState);
     }
@@ -152,20 +155,40 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
      */
     private void updateMovies()
     {
-        Log.d(LOG_TAG,"Update Movies");
+        String listTypeSetting = Utility.getPreferredMovieList(getActivity());
+
         // If we don't have a connection, show message to user.
-        if (Utility.isOnline() && Utility.isNetworkAvailable(getActivity())) {
+        // Also make sure we are not loading a favorites list
+        if (Utility.isOnline() && Utility.isNetworkAvailable(getActivity()) &&
+                !listTypeSetting.equalsIgnoreCase(getString(R.string.pref_sort_by_favorites))) {
             Intent intent = new Intent(getActivity(), MovieDataService.class);
             intent.setData(
-                    MoviesContract.MovieEntry.buildMoviesWithListTypeUri(
-                            Utility.getPreferredMovieList(getActivity())
-                    ));
+                    MoviesContract.MovieEntry.buildMoviesWithListTypeUri(listTypeSetting)
+            );
             getActivity().startService(intent);
         }
         else
         {
             // If we don't have a connection, try to load the data from the local db
             reloadCursorData();
+        }
+    }
+
+    /**
+     * Show the sorting order in the Activity bar after the app title
+     * @param listTypeSetting
+     */
+    private void setActivityTitle(String listTypeSetting)
+    {
+        Log.d(LOG_TAG, listTypeSetting);
+        String[] itemValues = getActivity().getResources().getStringArray(R.array.pref_sort_list_values);
+        String[] itemTitles = getActivity().getResources().getStringArray(R.array.pref_sort_list_titles);
+
+        for (int i = 0; i < itemValues.length; i++)
+        {
+            if(listTypeSetting.equalsIgnoreCase(itemValues[i])) {
+                getActivity().setTitle(getString(R.string.app_name) + " > " + itemTitles[i]);
+            }
         }
     }
 
@@ -193,10 +216,15 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         // fragment only uses one loader, so we don't care about checking the id.
 
         String listTypeSetting = Utility.getPreferredMovieList(getActivity());
-        Uri moviesUri = MoviesContract.MovieEntry.buildMoviesWithListTypeUri(listTypeSetting);
 
-        //TODO::Determine SORT ORDER by List Type
-        
+        Uri moviesUri;
+        //Check if we are grabbing the favorites list or polling TMDb API
+        if(listTypeSetting.equalsIgnoreCase(getString(R.string.pref_sort_by_favorites))) {
+            moviesUri = MoviesContract.FavoritesEntry.buildFavoritesUri();
+        } else {
+            moviesUri = MoviesContract.MovieEntry.buildMoviesWithListTypeUri(listTypeSetting);
+        }
+
         return new CursorLoader(getActivity(),
                 moviesUri,
                 MOVIES_COLUMNS,

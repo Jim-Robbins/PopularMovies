@@ -27,10 +27,15 @@ import android.test.AndroidTestCase;
 import android.util.Log;
 
 import com.android.nanodegree.jrobbins.popularmovies.app.data.MoviesContract.MovieEntry;
+import com.android.nanodegree.jrobbins.popularmovies.app.data.MoviesContract.MovieListsEntry;
+import com.android.nanodegree.jrobbins.popularmovies.app.data.MoviesContract.FavoritesEntry;
 
 public class TestProvider extends AndroidTestCase {
 
     public static final String LOG_TAG = TestProvider.class.getSimpleName();
+
+    private static final String TEST_MOVIE_ID = TestUtilities.TEST_MOVIE_ID;
+    private static final String TEST_MOVIE_FILTER = TestUtilities.TEST_MOVIE_FILTER;
 
     /*
        This helper function deletes all records from both database tables using the ContentProvider.
@@ -44,21 +49,16 @@ public class TestProvider extends AndroidTestCase {
                 null,
                 null
         );
-//        mContext.getContentResolver().delete(
-//                FavoriteEntry.CONTENT_URI,
-//                null,
-//                null
-//        );
-//        mContext.getContentResolver().delete(
-//                MovieListsEntry.CONTENT_URI,
-//                null,
-//                null
-//        );
-//        mContext.getContentResolver().delete(
-//                MovieDetailsEntry.CONTENT_URI,
-//                null,
-//                null
-//        );
+        mContext.getContentResolver().delete(
+                FavoritesEntry.CONTENT_URI,
+                null,
+                null
+        );
+        mContext.getContentResolver().delete(
+                MovieEntry.buildMoviesWithListTypeUri(TEST_MOVIE_FILTER),
+                null,
+                null
+        );
 
         Cursor cursor = mContext.getContentResolver().query(
                 MovieEntry.CONTENT_URI,
@@ -70,41 +70,28 @@ public class TestProvider extends AndroidTestCase {
         assertEquals("Error: Records not deleted from Movies table during delete", 0, cursor.getCount());
         cursor.close();
 
-//        cursor = mContext.getContentResolver().query(
-//                FavoriteEntry.CONTENT_URI,
-//                null,
-//                null,
-//                null,
-//                null
-//        );
-//        assertEquals("Error: Records not deleted from Favorites table during delete", 0, cursor.getCount());
-//        cursor.close();
-//
-//        cursor = mContext.getContentResolver().query(
-//                MovieListsEntry.CONTENT_URI,
-//                null,
-//                null,
-//                null,
-//                null
-//        );
-//        assertEquals("Error: Records not deleted from MovieListsEntry table during delete", 0, cursor.getCount());
-//        cursor.close();
-//
-//        cursor = mContext.getContentResolver().query(
-//                MovieDetailsEntry.CONTENT_URI,
-//                null,
-//                null,
-//                null,
-//                null
-//        );
-//        assertEquals("Error: Records not deleted from MovieDetailsEntry table during delete", 0, cursor.getCount());
-//        cursor.close();
+        cursor = mContext.getContentResolver().query(
+                FavoritesEntry.CONTENT_URI,
+                null,
+                null,
+                null,
+                null
+        );
+        assertEquals("Error: Records not deleted from Favorites table during delete", 0, cursor.getCount());
+        cursor.close();
+
+        cursor = mContext.getContentResolver().query(
+                MovieEntry.buildMoviesWithListTypeUri(TEST_MOVIE_FILTER),
+                null,
+                null,
+                null,
+                null
+        );
+        assertEquals("Error: Records not deleted from MovieListsEntry table during delete", 0, cursor.getCount());
+        cursor.close();
+
     }
 
-    /*
-        Student: Refactor this function to use the deleteAllRecordsFromProvider functionality once
-        you have implemented delete functionality there.
-     */
     public void deleteAllRecords() {
         deleteAllRecordsFromProvider();
     }
@@ -119,7 +106,6 @@ public class TestProvider extends AndroidTestCase {
 
     /*
         This test checks to make sure that the content provider is registered correctly.
-        Students: Uncomment this test to make sure you've correctly registered the MoviesProvider.
      */
     public void testProviderRegistry() {
         PackageManager pm = mContext.getPackageManager();
@@ -145,27 +131,52 @@ public class TestProvider extends AndroidTestCase {
     }
 
     /*
-            This test doesn't touch the database.  It verifies that the ContentProvider returns
-            the correct type for each type of URI that it can handle.
-            Students: Uncomment this test to verify that your implementation of GetType is
-            functioning correctly.
-         */
+        This test doesn't touch the database.  It verifies that the ContentProvider returns
+        the correct type for each type of URI that it can handle.
+        Students: Uncomment this test to verify that your implementation of GetType is
+        functioning correctly.
+     */
     public void testGetType() {
-        // content://com.android.nanodegree.jrobbins.popularmovies.app/movies/
-        // content://com.android.nanodegree.jrobbins.popularmovies.app/movies/12345
 
         String type = mContext.getContentResolver().getType(MovieEntry.CONTENT_URI);
         // vnd.android.cursor.dir/com.android.nanodegree.jrobbins.popularmovies.app/movies
         assertEquals("Error: the MovieEntry CONTENT_URI should return MovieEntry.CONTENT_TYPE",
                 MovieEntry.CONTENT_TYPE, type);
 
-        String testId = "12345";
-        // content://com.android.nanodegree.jrobbins.popularmovies.app/movies/12345
+        /*
+            case MOVIE_FAVORITE_ID:
+                return MoviesContract.MovieEntry.CONTENT_ITEM_TYPE;
+            case MOVIE_FAVORITES_LIST:
+                return MoviesContract.MovieEntry.CONTENT_TYPE;
+         */
+
+        // MOVIES_MOVIE_ID
         type = mContext.getContentResolver().getType(
-                MovieEntry.buildMovieWithMovieIdUri(testId));
-        // vnd.android.cursor.dir/com.example.android.sunshine.app/Movies
-        assertEquals("Error: the MovieEntry CONTENT_URI with location should return MovieEntry.CONTENT_TYPE",
+                MovieEntry.buildMovieWithMovieIdUri(TEST_MOVIE_ID));
+        // vnd.android.cursor.dir/com.example.android.sunshine.app/movies/#
+        assertEquals("Error: the MovieEntry CONTENT_URI with movie id should return MovieEntry.CONTENT_ITEM_TYPE",
                 MovieEntry.CONTENT_ITEM_TYPE, type);
+
+        // MOVIES_LIST_FILTER
+        type = mContext.getContentResolver().getType(
+                MovieEntry.buildMoviesWithListTypeUri(TEST_MOVIE_FILTER));
+        // vnd.android.cursor.dir/com.example.android.sunshine.app/movies/list/#
+        assertEquals("Error: the MovieEntry CONTENT_URI with listType should return MovieEntry.CONTENT_TYPE",
+                MovieEntry.CONTENT_TYPE, type);
+
+        // MOVIE_FAVORITE_ID
+        type = mContext.getContentResolver().getType(
+                FavoritesEntry.buildFavoriteWithIdUri(TEST_MOVIE_ID));
+        // vnd.android.cursor.dir/com.example.android.sunshine.app/favorites/#
+        assertEquals("Error: the FavoritesEntry CONTENT_URI with movie id should return MovieEntry.CONTENT_ITEM_TYPE",
+                MovieEntry.CONTENT_ITEM_TYPE, type);
+
+        // MOVIES_MOVIE_ID
+        type = mContext.getContentResolver().getType(
+                FavoritesEntry.buildFavoritesUri());
+        // vnd.android.cursor.dir/com.example.android.sunshine.app/favorites
+        assertEquals("Error: the FavoritesEntry CONTENT_URI with location should return MovieEntry.CONTENT_TYPE",
+                MovieEntry.CONTENT_TYPE, type);
     }
 
     /*
@@ -204,33 +215,33 @@ public class TestProvider extends AndroidTestCase {
         // Create a new map of values, where column names are the keys
         ContentValues values = TestUtilities.createMovieValues();
 
-        Uri movieUri = mContext.getContentResolver().
-                insert(MovieEntry.CONTENT_URI, values);
+        Uri movieUri = mContext.getContentResolver().insert(MovieEntry.CONTENT_URI, values);
         long movieRowId = ContentUris.parseId(movieUri);
 
         // Verify we got a row back.
         assertTrue(movieRowId != -1);
         Log.d(LOG_TAG, "New row id: " + movieRowId);
 
-        ContentValues updatedValues = new ContentValues(values);
-        updatedValues.put(MovieEntry.COLUMN_MOVIE_ID, movieRowId);
-        updatedValues.put(MovieEntry.COLUMN_VOTE_AVG, 9.1);
+        ContentValues updatedValues = TestUtilities.createMovieDetailsValues();
 
         // Create a cursor with observer to make sure that the content provider is notifying
         // the observers as expected
-        Cursor movieCursor = mContext.getContentResolver().query(MovieEntry.CONTENT_URI, null, null, null, null);
+        Uri uri = MoviesContract.MovieEntry.buildMovieWithMovieIdUri(TEST_MOVIE_ID);
+        Cursor movieCursor = mContext.getContentResolver().query(uri, null, null, null, null);
 
         TestUtilities.TestContentObserver tco = TestUtilities.getTestContentObserver();
         movieCursor.registerContentObserver(tco);
 
         int count = mContext.getContentResolver().update(
-                MovieEntry.CONTENT_URI, updatedValues, MovieEntry.COLUMN_MOVIE_ID + "= ?",
-                new String[] { Long.toString(movieRowId)});
+                uri,
+                updatedValues,
+                MovieEntry.COLUMN_MOVIE_ID + "= ?",
+                new String[] { TEST_MOVIE_ID });
         assertEquals(count, 1);
 
         // Test to make sure our observer is called.  If not, we throw an assertion.
         //
-        // Students: If your code is failing here, it means that your content provider
+        // If code is failing here, it means that content provider
         // isn't calling getContext().getContentResolver().notifyChange(uri, null);
         tco.waitForNotificationOrFail();
 
@@ -239,9 +250,9 @@ public class TestProvider extends AndroidTestCase {
 
         // A cursor is your primary interface to the query results.
         Cursor cursor = mContext.getContentResolver().query(
-                MovieEntry.CONTENT_URI,
+                uri,
                 null,   // projection
-                MovieEntry._ID + " = " + movieRowId,
+                MovieEntry.COLUMN_MOVIE_ID + " = " + TEST_MOVIE_ID,
                 null,   // Values for the "where" clause
                 null    // sort order
         );
@@ -262,13 +273,15 @@ public class TestProvider extends AndroidTestCase {
         // Register a content observer for our insert.  This time, directly with the content resolver
         TestUtilities.TestContentObserver tco = TestUtilities.getTestContentObserver();
 
+        Uri uri = MovieEntry.CONTENT_URI;
+
         // Fantastic.  Now that we have a location, add some Movies!
         ContentValues MoviesValues = TestUtilities.createMovieValues();
 
-        mContext.getContentResolver().registerContentObserver(MovieEntry.CONTENT_URI, true, tco);
+        mContext.getContentResolver().registerContentObserver(uri, true, tco);
 
         Uri MoviesInsertUri = mContext.getContentResolver()
-                .insert(MovieEntry.CONTENT_URI, MoviesValues);
+                .insert(uri, MoviesValues);
         assertTrue(MoviesInsertUri != null);
 
         // Did our content observer get called?  Students:  If this fails, your insert Movies
@@ -279,7 +292,7 @@ public class TestProvider extends AndroidTestCase {
 
         // A cursor is your primary interface to the query results.
         Cursor MoviesCursor = mContext.getContentResolver().query(
-                MovieEntry.CONTENT_URI,  // Table to Query
+                uri,  // Table to Query
                 null, // leaving "columns" null just returns all the columns.
                 null, // cols for "where" clause
                 null, // values for "where" clause
@@ -291,7 +304,7 @@ public class TestProvider extends AndroidTestCase {
 
         // Get the Movies data
         MoviesCursor = mContext.getContentResolver().query(
-                MovieEntry.buildMovieWithMovieIdUri(TestUtilities.TEST_MOVIE_ID),
+                uri,
                 null, // leaving "columns" null just returns all the columns.
                 null, // cols for "where" clause
                 null, // values for "where" clause
@@ -335,10 +348,9 @@ public class TestProvider extends AndroidTestCase {
             contentValues.put(MovieEntry.COLUMN_OVERVIEW, "Once Upon a Time...");
             contentValues.put(MovieEntry.COLUMN_TITLE, "Movie " + i);
             contentValues.put(MovieEntry.COLUMN_VOTE_AVG, 1.1);
-            contentValues.put(MovieEntry.COLUMN_GENRE_IDS, "1,2,3");
+            contentValues.put(MovieEntry.COLUMN_GENRES, "1,2,3");
             contentValues.put(MovieEntry.COLUMN_BACKDROP_PATH, "back/path");
             contentValues.put(MovieEntry.COLUMN_POSTER, "poster/path");
-            contentValues.put(MovieEntry.COLUMN_RELEASE_DATE, TestUtilities.TEST_DATE);
             returnContentValues[i] = contentValues;
         }
         return returnContentValues;

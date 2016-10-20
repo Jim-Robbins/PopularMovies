@@ -21,8 +21,8 @@ import android.test.AndroidTestCase;
 public class TestMoviesContract extends AndroidTestCase {
 
     // intentionally includes a slash to make sure Uri is getting quoted correctly
-    private static final String TEST_MOVIE_ID = "12345";
-    private static final String TEST_MOVIE_FILTER = "popular";
+    private static final String TEST_MOVIE_ID = TestUtilities.TEST_MOVIE_ID;
+    private static final String TEST_MOVIE_FILTER = TestUtilities.TEST_MOVIE_FILTER;
 
     public void testBuildMovieWithMovieIdUri() {
         Uri movieUri = MoviesContract.MovieEntry.buildMovieWithMovieIdUri(TEST_MOVIE_ID);
@@ -46,6 +46,27 @@ public class TestMoviesContract extends AndroidTestCase {
         assertEquals("Error: Movies Uri doesn't match our expected result",
                 movieUri.toString(),
                 MoviesContract.MovieEntry.CONTENT_URI.toString() + "/list/" +TEST_MOVIE_FILTER);
+    }
+
+    public void testBuildFavoriteMovieWithMovieIdUri() {
+        Uri movieUri = MoviesContract.FavoritesEntry.buildFavoriteWithIdUri(TEST_MOVIE_ID);
+        assertNotNull("Error: Null Uri returned.  You must fill-in buildFavoriteWithIdUri in " +
+                        "MoviesContract.",
+                movieUri);
+        assertEquals("Error: Movies Uri doesn't match our expected result",
+                movieUri.toString(),
+                MoviesContract.FavoritesEntry.CONTENT_URI.toString() + "/" + TEST_MOVIE_ID);
+    }
+
+    public void testBuildFavoritesMovieListUri() {
+        Uri movieUri = MoviesContract.FavoritesEntry.buildFavoritesUri();
+        assertNotNull("Error: Null Uri returned.  You must fill-in buildFavoritesUri in " +
+                        "MoviesContract.",
+                movieUri);
+
+        assertEquals("Error: Favorites Uri doesn't match our expected result",
+                movieUri.toString(),
+                MoviesContract.FavoritesEntry.CONTENT_URI.toString());
     }
 
 }
