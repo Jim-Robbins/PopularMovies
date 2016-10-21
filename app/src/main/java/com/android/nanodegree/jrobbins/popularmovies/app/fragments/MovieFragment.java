@@ -130,8 +130,7 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
 
         String listTypeSetting = Utility.getPreferredMovieList(getActivity());
         // If first time load we need to wait to get our data before creating our cursor
-        if(TextUtils.isEmpty(listTypeSetting))
-        {
+        if (TextUtils.isEmpty(listTypeSetting)) {
             Utility.setPreferredMovieList(getActivity());
             updateMovies();
         }
@@ -153,8 +152,7 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
     /**
      * Update the movie list by making a call to TMDb API
      */
-    private void updateMovies()
-    {
+    private void updateMovies() {
         String listTypeSetting = Utility.getPreferredMovieList(getActivity());
 
         // If we don't have a connection, show message to user.
@@ -166,9 +164,7 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
                     MoviesContract.MovieEntry.buildMoviesWithListTypeUri(listTypeSetting)
             );
             getActivity().startService(intent);
-        }
-        else
-        {
+        } else {
             // If we don't have a connection, try to load the data from the local db
             reloadCursorData();
         }
@@ -176,17 +172,16 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
 
     /**
      * Show the sorting order in the Activity bar after the app title
+     *
      * @param listTypeSetting
      */
-    private void setActivityTitle(String listTypeSetting)
-    {
+    private void setActivityTitle(String listTypeSetting) {
         Log.d(LOG_TAG, listTypeSetting);
         String[] itemValues = getActivity().getResources().getStringArray(R.array.pref_sort_list_values);
         String[] itemTitles = getActivity().getResources().getStringArray(R.array.pref_sort_list_titles);
 
-        for (int i = 0; i < itemValues.length; i++)
-        {
-            if(listTypeSetting.equalsIgnoreCase(itemValues[i])) {
+        for (int i = 0; i < itemValues.length; i++) {
+            if (listTypeSetting.equalsIgnoreCase(itemValues[i])) {
                 getActivity().setTitle(getString(R.string.app_name) + " > " + itemTitles[i]);
             }
         }
@@ -219,7 +214,7 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
 
         Uri moviesUri;
         //Check if we are grabbing the favorites list or polling TMDb API
-        if(listTypeSetting.equalsIgnoreCase(getString(R.string.pref_sort_by_favorites))) {
+        if (listTypeSetting.equalsIgnoreCase(getString(R.string.pref_sort_by_favorites))) {
             moviesUri = MoviesContract.FavoritesEntry.buildFavoritesUri();
         } else {
             moviesUri = MoviesContract.MovieEntry.buildMoviesWithListTypeUri(listTypeSetting);
@@ -233,7 +228,7 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
                 null);
     }
 
-    Handler handler = new Handler(){
+    Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             mMovieGridList.performItemClick(mMovieGridList, 0, mMovieGridList.getItemIdAtPosition(0));
@@ -250,7 +245,7 @@ public class MovieFragment extends Fragment implements LoaderManager.LoaderCallb
         } else {
             data.moveToFirst();
 
-            if(MainActivity.mTwoPane && data.getCount() > 0) {
+            if (MainActivity.mTwoPane && data.getCount() > 0) {
                 handler.sendEmptyMessage(0);
             }
         }

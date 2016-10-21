@@ -158,15 +158,14 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     public void onActivityCreated(Bundle savedInstanceState) {
         getLoaderManager().initLoader(DETAIL_LOADER, null, this);
         // Make additional API call to get further movie details
-        if(mUri != null) {
+        if (mUri != null) {
             getMovieDetails();
         }
         super.onActivityCreated(savedInstanceState);
     }
 
-    private void getMovieDetails()
-    {
-        Log.d(LOG_TAG,"Get Movie Details, Trailer & Ratings");
+    private void getMovieDetails() {
+        Log.d(LOG_TAG, "Get Movie Details, Trailer & Ratings");
         // If we don't have a connection, show message to user.
         if (Utility.isOnline() && Utility.isNetworkAvailable(getActivity())) {
             Intent intent = new Intent(getActivity(), MovieDataService.class);
@@ -177,7 +176,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        if ( null != mUri ) {
+        if (null != mUri) {
             // Now create and return a CursorLoader that will take care of
             // creating a Cursor for the data being displayed.
             return new CursorLoader(
@@ -192,7 +191,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         return null;
     }
 
-    private void reloadCursorData( ) {
+    private void reloadCursorData() {
         getLoaderManager().restartLoader(DETAIL_LOADER, null, this);
     }
 
@@ -219,10 +218,9 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         });
     }
 
-    private void toggleFavoriteButton()
-    {
+    private void toggleFavoriteButton() {
         String iconName = (mIsFavorite) ? "btn_star_big_on" : "btn_star_big_off";
-        mFavoriteButton.setImageResource(getResources().getIdentifier("android:drawable/"+iconName, null, null));
+        mFavoriteButton.setImageResource(getResources().getIdentifier("android:drawable/" + iconName, null, null));
     }
 
     private void updateFavoriteStatus() {
@@ -267,14 +265,14 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
     /**
      * Convenience method to assign text to all our TextViews
+     *
      * @param data cursor data that contains our values
      */
-    private void setTextViews(Cursor data)
-    {
+    private void setTextViews(Cursor data) {
         mTitleView.setText(data.getString(COL_MOVIE_TITLE));
         mSummaryView.setText(data.getString(COL_MOVIE_OVERVIEW));
 
-        String releaseYear = data.getString(COL_MOVIE_RELEASE_DATE).substring(0,4);
+        String releaseYear = data.getString(COL_MOVIE_RELEASE_DATE).substring(0, 4);
         mReleaseYearView.setText(releaseYear);
 
         hyperlinkTextView(mHomepageView, data.getString(COL_MOVIE_HOMEPAGE), data.getString(COL_MOVIE_HOMEPAGE));
@@ -294,24 +292,24 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
     /**
      * Convenience method for hyperlinking a textView
+     *
      * @param txtView
      * @param url
      * @param linkText
      */
-    private void hyperlinkTextView(TextView txtView, String url, String linkText)
-    {
-        Spanned anchorText =  Html.fromHtml("<a href=\""+url+"\">"+linkText+"</a>");
+    private void hyperlinkTextView(TextView txtView, String url, String linkText) {
+        Spanned anchorText = Html.fromHtml("<a href=\"" + url + "\">" + linkText + "</a>");
         txtView.setText(anchorText);
         txtView.setMovementMethod(LinkMovementMethod.getInstance());
     }
 
     /**
      * Convenience method to setup our Trailers listView
+     *
      * @param sTrailers JSON String of trailer data
      */
-    private void setTrailersListView(String sTrailers)
-    {
-        if(!TextUtils.isEmpty(sTrailers)) {
+    private void setTrailersListView(String sTrailers) {
+        if (!TextUtils.isEmpty(sTrailers)) {
             try {
                 JSONObject jsonTrailers = new JSONObject(sTrailers);
                 if (jsonTrailers != null) {
@@ -325,13 +323,15 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
                         public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
                             MovieTrailer movieTrailer = (MovieTrailer) adapterView.getItemAtPosition(position);
                             if (movieTrailer != null) {
-                                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.detail_youtube_url,movieTrailer.key))));
+                                Intent videoIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.detail_youtube_url, movieTrailer.key)));
+                                if (videoIntent.resolveActivity(getActivity().getPackageManager()) != null) {
+                                    startActivity(videoIntent);
+                                }
                             }
                         }
                     });
-
+                    
                     Utility.setItemHeightofListView(mTrailersListView, trailerAdaptor.getCount());
-
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -341,11 +341,11 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
     /**
      * Parse the JSON string data as an array and store in typed array
+     *
      * @param jsonArray
      * @return our array list of trailers
      */
-    private ArrayList<MovieTrailer> parseTrailersJSONArray(JSONArray jsonArray)
-    {
+    private ArrayList<MovieTrailer> parseTrailersJSONArray(JSONArray jsonArray) {
         ArrayList<MovieTrailer> movieTrailers = new ArrayList<>();
 
         for (int i = 0; i < jsonArray.length(); i++) {
@@ -365,10 +365,11 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
     /**
      * Convenience method to setup our Reviews listView
+     *
      * @param sReviews JSON String of review data
      */
     private void setReviewsListView(String sReviews) {
-        if(!TextUtils.isEmpty(sReviews)) {
+        if (!TextUtils.isEmpty(sReviews)) {
             try {
                 JSONObject jsonReviews = new JSONObject(sReviews);
                 if (jsonReviews != null) {
@@ -385,18 +386,17 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
     /**
      * Parse the JSON string data as an array and store in typed array
+     *
      * @param jsonArray
      * @return our array list of reviews
      */
-    private ArrayList<MovieReview> parseReviewsJSONArray(JSONArray jsonArray)
-    {
+    private ArrayList<MovieReview> parseReviewsJSONArray(JSONArray jsonArray) {
         ArrayList<MovieReview> movieReviews = new ArrayList<>();
 
         for (int i = 0; i < jsonArray.length(); i++) {
             try {
                 MovieReview movieReview = new MovieReview(jsonArray.getJSONObject(i));
-                if(movieReview != null)
-                {
+                if (movieReview != null) {
                     movieReviews.add(movieReview);
                 }
             } catch (JSONException e) {
@@ -410,10 +410,10 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
     /**
      * Load the poster from TMDb site into our ImageView via Picasso
+     *
      * @param posterData
      */
-    private void loadPosterIntoImageView(String posterData)
-    {
+    private void loadPosterIntoImageView(String posterData) {
         //Load poster into image view using Picasso
         if (BuildConfig.DEBUG) {
             Picasso.with(getActivity()).setIndicatorsEnabled(true);
@@ -429,7 +429,8 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     }
 
     @Override
-    public void onLoaderReset(Loader<Cursor> loader) { }
+    public void onLoaderReset(Loader<Cursor> loader) {
+    }
 
     @Override
     public void onResume() {

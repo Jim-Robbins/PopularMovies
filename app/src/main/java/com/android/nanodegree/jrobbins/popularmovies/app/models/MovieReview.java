@@ -13,8 +13,7 @@ public class MovieReview {
     public String author;
     public String content;
 
-    public MovieReview(JSONObject jsonObject)
-    {
+    public MovieReview(JSONObject jsonObject) {
         this.id = Utility.getJSONStringValue(jsonObject, "id");
         this.author = Utility.getJSONStringValue(jsonObject, "author");
         this.content = Utility.getJSONStringValue(jsonObject, "content");

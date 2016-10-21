@@ -28,14 +28,12 @@ public class MoviesDbHelper extends SQLiteOpenHelper {
         createMoviesCacheTables(db);
     }
 
-    private void createMoviesCacheTables(SQLiteDatabase db)
-    {
+    private void createMoviesCacheTables(SQLiteDatabase db) {
         createMoviesTable(db);
         createMoviesListTables(db);
     }
 
-    private void createFavoritesTable(SQLiteDatabase db)
-    {
+    private void createFavoritesTable(SQLiteDatabase db) {
         // Create a table to hold favorites.  A favorite consists of a boolean supplied by the user and an movie id
         final String SQL_CREATE_FAVORITES_TABLE = "CREATE TABLE " + FavoritesEntry.TABLE_NAME + "(" +
                 FavoritesEntry._ID + " INTEGER PRIMARY KEY," +
@@ -45,8 +43,7 @@ public class MoviesDbHelper extends SQLiteOpenHelper {
         db.execSQL(SQL_CREATE_FAVORITES_TABLE);
     }
 
-    private void createMoviesTable(SQLiteDatabase db)
-    {
+    private void createMoviesTable(SQLiteDatabase db) {
         // Create a table to hold list of movies.
         final String SQL_CREATE_FAVORITES_TABLE = "CREATE TABLE " + MovieEntry.TABLE_NAME + "(" +
                 MovieEntry._ID + " INTEGER PRIMARY KEY," +
@@ -72,14 +69,13 @@ public class MoviesDbHelper extends SQLiteOpenHelper {
         db.execSQL(SQL_CREATE_FAVORITES_TABLE);
     }
 
-    private void createMoviesListTables(SQLiteDatabase db)
-    {
+    private void createMoviesListTables(SQLiteDatabase db) {
         // Create a tables to hold movie list filter results
         final String SQL_CREATE_MOVIES_LISTS_TABLE = "CREATE TABLE " + MovieListsEntry.TABLE_NAME + "(" +
                 MovieListsEntry._ID + " INTEGER PRIMARY KEY," +
                 MovieListsEntry.COLUMN_MOVIE_ID + " TEXT NOT NULL, " +
                 MovieListsEntry.COLUMN_LIST_ID + " INTEGER NOT NULL, " +
-                "UNIQUE(" + MovieListsEntry.COLUMN_MOVIE_ID + "," + MovieListsEntry.COLUMN_LIST_ID +") ON CONFLICT REPLACE" +
+                "UNIQUE(" + MovieListsEntry.COLUMN_MOVIE_ID + "," + MovieListsEntry.COLUMN_LIST_ID + ") ON CONFLICT REPLACE" +
                 " );";
 
         db.execSQL(SQL_CREATE_MOVIES_LISTS_TABLE);

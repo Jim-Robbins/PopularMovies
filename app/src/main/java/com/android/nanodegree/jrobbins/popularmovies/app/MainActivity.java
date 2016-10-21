@@ -70,8 +70,8 @@ public class MainActivity extends AppCompatActivity implements MovieFragment.Cal
         if (id == R.id.action_settings) {
             Intent intent = new Intent(this, SettingsActivity.class);
             // Skip the headers in PreferenceActivity when there's only one header -  http://stackoverflow.com/questions/10802640/skip-the-headers-in-preferenceactivity-when-theres-only-one-header
-            intent.putExtra( PreferenceActivity.EXTRA_SHOW_FRAGMENT, SettingsActivity.GeneralPreferenceFragment.class.getName() );
-            intent.putExtra( PreferenceActivity.EXTRA_NO_HEADERS, true );
+            intent.putExtra(PreferenceActivity.EXTRA_SHOW_FRAGMENT, SettingsActivity.GeneralPreferenceFragment.class.getName());
+            intent.putExtra(PreferenceActivity.EXTRA_NO_HEADERS, true);
             this.startActivity(intent);
             return true;
         }
@@ -83,11 +83,11 @@ public class MainActivity extends AppCompatActivity implements MovieFragment.Cal
     protected void onResume() {
         super.onResume();
 
-        String sortBy = Utility.getPreferredMovieList( this );
+        String sortBy = Utility.getPreferredMovieList(this);
         // update the location in our second pane using the fragment manager
         if (sortBy != null && !sortBy.equals(mSortBy)) {
-            MovieFragment mf = (MovieFragment)getSupportFragmentManager().findFragmentById(R.id.fragment_movies);
-            if ( null != mf ) {
+            MovieFragment mf = (MovieFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_movies);
+            if (null != mf) {
                 mf.onListTypeChanged();
             }
             mSortBy = sortBy;

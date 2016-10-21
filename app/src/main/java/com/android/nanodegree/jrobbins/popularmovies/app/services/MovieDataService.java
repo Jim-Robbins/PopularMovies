@@ -71,8 +71,9 @@ public class MovieDataService extends IntentService {
 
     /**
      * Construct the URI to retrieve the poster image from TMDb
-     * @param size  Image size we want to load
-     * @param posterPath  The poster path from the movie details
+     *
+     * @param size       Image size we want to load
+     * @param posterPath The poster path from the movie details
      * @return uri to load the poster image
      */
     public static String getTheMovieDBApiPosterUri(String size, String posterPath) {
@@ -80,7 +81,7 @@ public class MovieDataService extends IntentService {
         Uri builtUri = Uri.parse(MOVIE_DB_IMG_URL).buildUpon()
                 .appendPath(size)
                 .build();
-        return  builtUri.toString() + posterPath;
+        return builtUri.toString() + posterPath;
     }
 
     @Override
@@ -101,7 +102,7 @@ public class MovieDataService extends IntentService {
 
         // Determine if we are looking up a list of movies or loading movie details
         String dataType = new MoviesProvider().getType(mUri);
-        if(dataType != null && dataType.equalsIgnoreCase(MoviesContract.MovieEntry.CONTENT_TYPE)) {
+        if (dataType != null && dataType.equalsIgnoreCase(MoviesContract.MovieEntry.CONTENT_TYPE)) {
             getMoviesListFromApi();
         } else {
             getMovieDetailsFromApi();
@@ -111,11 +112,11 @@ public class MovieDataService extends IntentService {
 
     /**
      * Make call to TMDb API and collect JSON response
+     *
      * @param baseUrl The formatted api call
      * @return JSON result string
      */
-    private String getJSONDataFromApiCall(String baseUrl)
-    {
+    private String getJSONDataFromApiCall(String baseUrl) {
         // These two need to be declared outside the try/catch
         // so that they can be closed in the finally block.
         HttpURLConnection urlConnection = null;
@@ -126,7 +127,7 @@ public class MovieDataService extends IntentService {
 
         try {
             // Create the request to TheMovieDB API, and open the connection
-            Log.d(LOG_TAG,baseUrl);
+            Log.d(LOG_TAG, baseUrl);
 
             URL url = new URL(baseUrl);
 
@@ -189,7 +190,7 @@ public class MovieDataService extends IntentService {
      */
     private void getMoviesListFromApi() {
         String listQuery = MoviesContract.MovieEntry.getListTypeFromUri(mUri);
-        Log.d(LOG_TAG, "getMoviesListFromApi:"+ listQuery);
+        Log.d(LOG_TAG, "getMoviesListFromApi:" + listQuery);
 
         // Format the API uri
         String baseUrl = getTheMovieDBApiMovieListUri(listQuery);
@@ -205,14 +206,14 @@ public class MovieDataService extends IntentService {
     }
 
     /**
-     *  Construct the URI for TMDb query for movie lists
-     *  Possible parameters are avaiable at TMDb's API page, at
-     *  https://www.themoviedb.org/documentation/api
+     * Construct the URI for TMDb query for movie lists
+     * Possible parameters are avaiable at TMDb's API page, at
+     * https://www.themoviedb.org/documentation/api
+     *
      * @param filterBy
      * @return
      */
-    private String getTheMovieDBApiMovieListUri(String filterBy)
-    {
+    private String getTheMovieDBApiMovieListUri(String filterBy) {
         Uri builtUri = Uri.parse(MOVIE_DB_API_URL).buildUpon()
                 .appendPath(filterBy)
                 .appendQueryParameter(MOVIE_DB_PARAM_API_KEY, BuildConfig.THE_MOVIE_DB_API_KEY)
@@ -222,6 +223,7 @@ public class MovieDataService extends IntentService {
 
     /**
      * Parse out raw JSON data from The Movie DB api into usable Movie items
+     *
      * @param moviesListJsonStr The raw JSON string returned from the api
      * @return a List of type Movie
      */
@@ -234,8 +236,7 @@ public class MovieDataService extends IntentService {
             moviesListJSONObj = new JSONObject(moviesListJsonStr);
 
             // Check that we have a proper JSON Object and a results key
-            if (!moviesListJSONObj.isNull(MOVIE_DB_KEY_RESULTS))
-            {
+            if (!moviesListJSONObj.isNull(MOVIE_DB_KEY_RESULTS)) {
                 //Create our array list and populate it
                 populateMoviesTable(moviesListJSONObj.getJSONArray(MOVIE_DB_KEY_RESULTS));
             }
@@ -246,6 +247,7 @@ public class MovieDataService extends IntentService {
 
     /**
      * Create a List populated with Movie types created from JSON object data
+     *
      * @param jsonArray The JSON array containing the list of movie results
      * @return List of type Movie
      */
@@ -270,7 +272,7 @@ public class MovieDataService extends IntentService {
         }
 
         // add to database
-        if ( cVVector.size() > 0 ) {
+        if (cVVector.size() > 0) {
             ContentValues[] cvArray = new ContentValues[cVVector.size()];
             cVVector.toArray(cvArray);
             Uri insertUri = MoviesContract.MovieEntry.buildMoviesWithListTypeUri(Utility.getPreferredMovieList(this));
@@ -282,11 +284,11 @@ public class MovieDataService extends IntentService {
 
     /**
      * Parse the json result item into contentValues Object
-     * @param movieJSONObj  JSONObject of a particular movie object from the results list
+     *
+     * @param movieJSONObj JSONObject of a particular movie object from the results list
      * @return contentValues created from the JSON data
      */
-    private ContentValues parseJSONIntoMoviesContentValues(JSONObject movieJSONObj)
-    {
+    private ContentValues parseJSONIntoMoviesContentValues(JSONObject movieJSONObj) {
         int movieId = Utility.getJSONIntValue(movieJSONObj, MOVIE_DB_KEY_ID);
         String movieTitle = Utility.getJSONStringValue(movieJSONObj, MOVIE_DB_KEY_TITLE);
         String moviePoster = Utility.getJSONStringValue(movieJSONObj, MOVIE_DB_KEY_POSTER_PATH);
@@ -310,13 +312,12 @@ public class MovieDataService extends IntentService {
     /**
      * Get specific movie detail from TMDb API and store results in local db
      */
-    private void getMovieDetailsFromApi()
-    {
+    private void getMovieDetailsFromApi() {
         ContentValues contentValues = new ContentValues();
 
         // Get movie id from the uri
         String movieId = MoviesContract.MovieEntry.getMovieIdFromUri(mUri);
-        Log.d(LOG_TAG, "getMovieDetailsFromApi:"+ movieId);
+        Log.d(LOG_TAG, "getMovieDetailsFromApi:" + movieId);
 
         // Get list of movie trailers
         String movieTrailerDataJsonStr = getMovieDetailJSONStringFromAPI(MOVIE_DB_DETAIL_VIDEOS);
@@ -343,11 +344,11 @@ public class MovieDataService extends IntentService {
 
     /**
      * Helper method to grab movieId and get TMDb API uri to make API call and return data string
+     *
      * @param detailPath
      * @return
      */
-    private String getMovieDetailJSONStringFromAPI(String detailPath)
-    {
+    private String getMovieDetailJSONStringFromAPI(String detailPath) {
         String movieId = MoviesContract.MovieEntry.getMovieIdFromUri(mUri);
         String baseUrl = getTheMovieDBApiMovieDetailUri(movieId, detailPath);
 
@@ -356,12 +357,12 @@ public class MovieDataService extends IntentService {
 
     /**
      * Construct the URI to retrieve the movie details
-     * @param movieId  The movie id to load details for
-     * @param detailPath  Parameter to tag on if we want to load trailers/reviews
+     *
+     * @param movieId    The movie id to load details for
+     * @param detailPath Parameter to tag on if we want to load trailers/reviews
      * @return uri to load the movie detail
      */
-    private String getTheMovieDBApiMovieDetailUri(String movieId, String detailPath)
-    {
+    private String getTheMovieDBApiMovieDetailUri(String movieId, String detailPath) {
         Uri builtUri;
         if (detailPath == null) {
             builtUri = Uri.parse(MOVIE_DB_API_URL).buildUpon()
@@ -381,6 +382,7 @@ public class MovieDataService extends IntentService {
 
     /**
      * Parse out raw JSON data from The Movie DB api into usable Movie detail items
+     *
      * @param moviesDetailJsonStr The raw JSON string returned from the api
      */
     private ContentValues getMovieDetailsContentValuesFromJson(String moviesDetailJsonStr,
@@ -401,12 +403,12 @@ public class MovieDataService extends IntentService {
 
     /**
      * Parse the json result item into contentValues Object
-     * @param movieJSONObj  JSONObject of a particular movie object from the results list
+     *
+     * @param movieJSONObj JSONObject of a particular movie object from the results list
      * @return contentValues created from the JSON data
      */
     private ContentValues parseJSONIntoMovieDetailContentValue(JSONObject movieJSONObj,
-                                                               ContentValues contentValues)
-    {
+                                                               ContentValues contentValues) {
         int mId = Utility.getJSONIntValue(movieJSONObj, MOVIE_DB_KEY_ID);
         String movieHomepage = Utility.getJSONStringValue(movieJSONObj, "homepage");
         String movieImdbId = Utility.getJSONStringValue(movieJSONObj, "imdb_id");
@@ -432,24 +434,24 @@ public class MovieDataService extends IntentService {
 
     /**
      * Update the movie record with the additional details, trailers and review data
-     * @param contentValues  The content values populated with the movie detail updates
+     *
+     * @param contentValues The content values populated with the movie detail updates
      */
-    private void populateMovieDetails(ContentValues contentValues)
-    {
-            // update database
-            Uri updateUri = MoviesContract.MovieEntry.buildMovieWithMovieIdUri(
-                    contentValues.getAsString(MoviesContract.MovieEntry.COLUMN_MOVIE_ID));
+    private void populateMovieDetails(ContentValues contentValues) {
+        // update database
+        Uri updateUri = MoviesContract.MovieEntry.buildMovieWithMovieIdUri(
+                contentValues.getAsString(MoviesContract.MovieEntry.COLUMN_MOVIE_ID));
 
-            String sMoviesByIdSelection = MoviesContract.MovieListsEntry.COLUMN_MOVIE_ID + " = ? ";
+        String sMoviesByIdSelection = MoviesContract.MovieListsEntry.COLUMN_MOVIE_ID + " = ? ";
 
-            int updated = this.getContentResolver().update(
-                    updateUri,
-                    contentValues,
-                    sMoviesByIdSelection,
-                    new String[]{MoviesContract.MovieEntry.getMovieIdFromUri(mUri)}
-            );
+        int updated = this.getContentResolver().update(
+                updateUri,
+                contentValues,
+                sMoviesByIdSelection,
+                new String[]{MoviesContract.MovieEntry.getMovieIdFromUri(mUri)}
+        );
 
-            Log.d(LOG_TAG, "MovieDB Detail update Complete. " + updated + " updated");
+        Log.d(LOG_TAG, "MovieDB Detail update Complete. " + updated + " updated");
 
     }
 }

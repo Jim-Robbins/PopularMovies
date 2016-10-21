@@ -33,7 +33,8 @@ public class MoviesProvider extends ContentProvider {
      * Table definition for getting our movie details, LEFT OUTER JOIN favorites
      */
     private static final SQLiteQueryBuilder sMovieDetailQueryBuilder;
-    static{
+
+    static {
         sMovieDetailQueryBuilder = new SQLiteQueryBuilder();
 
         //This is an inner join which looks like
@@ -65,7 +66,8 @@ public class MoviesProvider extends ContentProvider {
      * This definition is for linking our movies table via LEFT OUTER JOIN to our movie_lists
      */
     private static final SQLiteQueryBuilder sMovieListsByTypeQueryBuilder;
-    static{
+
+    static {
         sMovieListsByTypeQueryBuilder = new SQLiteQueryBuilder();
 
         //This is an inner join which looks like
@@ -83,11 +85,12 @@ public class MoviesProvider extends ContentProvider {
      * This selection argument allows us to filter our movie list buy list type
      */
     private static final String sMovieListByTypeSelection =
-            MoviesContract.MovieListsEntry.TABLE_NAME+
+            MoviesContract.MovieListsEntry.TABLE_NAME +
                     "." + MoviesContract.MovieListsEntry.COLUMN_LIST_ID + " = ? ";
 
     /**
      * Check the incoming URIs to make sure they match valid calls
+     *
      * @return
      */
     static UriMatcher buildUriMatcher() {
@@ -184,7 +187,7 @@ public class MoviesProvider extends ContentProvider {
      */
     private Cursor getMoviesByFilter(Uri uri, String[] projection, String sortOrder) {
         String listIdFromUri = MoviesContract.MovieEntry.getListTypeFromUri(uri);
-        Log.d(LOG_TAG,listIdFromUri);
+        Log.d(LOG_TAG, listIdFromUri);
 
         Cursor cursor = sMovieListsByTypeQueryBuilder.query(mOpenHelper.getReadableDatabase(),
                 projection,
@@ -241,14 +244,14 @@ public class MoviesProvider extends ContentProvider {
                         db,
                         uri,
                         values);
-                if(insertId > 0) {
+                if (insertId > 0) {
                     returnUri = MoviesContract.MovieEntry.buildMovieWithMovieIdUri(values.getAsString(MoviesContract.MovieEntry.COLUMN_MOVIE_ID));
                 }
                 break;
             }
             case MOVIE_FAVORITE_ID: {
                 long _id = db.insert(MoviesContract.FavoritesEntry.TABLE_NAME, null, values);
-                if ( _id > 0 )
+                if (_id > 0)
                     returnUri = MoviesContract.FavoritesEntry.buildFavoriteWithIdUri(values.getAsString(MoviesContract.FavoritesEntry.COLUMN_IS_FAVORITE));
                 else
                     throw new android.database.SQLException("Failed to insert row into " + uri);
@@ -259,7 +262,7 @@ public class MoviesProvider extends ContentProvider {
                         db,
                         uri,
                         values);
-                if(insertId > 0) {
+                if (insertId > 0) {
                     returnUri = MoviesContract.MovieEntry.buildMovieWithMovieIdUri(values.getAsString(MoviesContract.MovieEntry.COLUMN_MOVIE_ID));
                     String movieId = values.getAsString(MoviesContract.MovieEntry.COLUMN_MOVIE_ID);
                     String listType = MoviesContract.MovieEntry.getListTypeFromUri(uri);
@@ -287,8 +290,7 @@ public class MoviesProvider extends ContentProvider {
         }
     }
 
-    private int doBulkInsert(Uri uri, ContentValues[] values)
-    {
+    private int doBulkInsert(Uri uri, ContentValues[] values) {
         final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
         int returnCount = 0;
 
@@ -354,8 +356,7 @@ public class MoviesProvider extends ContentProvider {
         return returnId;
     }
 
-    private long insertListType(SQLiteDatabase db, String movieId, String listType)
-    {
+    private long insertListType(SQLiteDatabase db, String movieId, String listType) {
         long returnId;
 
         ContentValues values = new ContentValues();
@@ -378,7 +379,7 @@ public class MoviesProvider extends ContentProvider {
         final int match = sUriMatcher.match(uri);
         int rowsDeleted;
         // this makes delete all rows return the number of rows deleted
-        if ( null == selection ) selection = "1";
+        if (null == selection) selection = "1";
         switch (match) {
             case MOVIES:
                 rowsDeleted = db.delete(

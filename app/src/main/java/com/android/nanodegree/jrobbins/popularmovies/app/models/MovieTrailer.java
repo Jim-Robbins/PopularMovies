@@ -14,8 +14,7 @@ public class MovieTrailer {
     public String name;
     public String site;
 
-    public MovieTrailer(JSONObject jsonObject)
-    {
+    public MovieTrailer(JSONObject jsonObject) {
         this.id = Utility.getJSONStringValue(jsonObject, "id");
         this.key = Utility.getJSONStringValue(jsonObject, "key");
         this.name = Utility.getJSONStringValue(jsonObject, "name");

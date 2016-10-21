@@ -23,9 +23,9 @@ public class MoviesContract {
     // For instance, content://com.android.nanodegree.jrobbins.popularmovies.app/movies/ is a valid path for
     // looking at movie data. content://com.android.nanodegree.jrobbins.popularmovies.app/givemeroot/ will fail,
     // as the ContentProvider hasn't been given any information on what to do with "givemeroot".
-    public static final String PATH_MOVIES           = "movies";
-    public static final String PATH_MOVIES_DETAIL    = "detail";
-    public static final String PATH_MOVIES_LIST      = "list";
+    public static final String PATH_MOVIES = "movies";
+    public static final String PATH_MOVIES_DETAIL = "detail";
+    public static final String PATH_MOVIES_LIST = "list";
     public static final String PATH_MOVIES_FAVORITES = "favorites";
 
     /* Inner class that defines the table contents of the favorites table */
@@ -47,6 +47,7 @@ public class MoviesContract {
 
         /**
          * Build uri to access record in favorites table
+         *
          * @param movie_id
          * @return Uri
          */
@@ -79,7 +80,7 @@ public class MoviesContract {
         public static final String COLUMN_POSTER = "poster";
         public static final String COLUMN_OVERVIEW = "overview";
         public static final String COLUMN_RELEASE_DATE = "release_date";
-        public static final String COLUMN_VOTE_AVG= "vote_average";
+        public static final String COLUMN_VOTE_AVG = "vote_average";
         public static final String COLUMN_BACKDROP_PATH = "backdrop_path";
         public static final String COLUMN_CREATE_DATE = "create_date";
         public static final String COLUMN_HOMEPAGE = "homepage";
@@ -94,6 +95,7 @@ public class MoviesContract {
 
         /**
          * Build uri to access movie by id
+         *
          * @param movie_id String value
          * @return Uri
          */
@@ -108,6 +110,7 @@ public class MoviesContract {
         public static String getMovieIdFromUri(Uri uri) {
             return uri.getPathSegments().get(2);
         }
+
         public static String getListTypeFromUri(Uri uri) {
             return uri.getPathSegments().get(2);
         }
