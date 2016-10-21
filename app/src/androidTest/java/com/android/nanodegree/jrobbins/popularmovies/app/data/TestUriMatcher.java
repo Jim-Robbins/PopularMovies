@@ -19,9 +19,9 @@ import android.content.UriMatcher;
 import android.net.Uri;
 import android.test.AndroidTestCase;
 
+import static com.android.nanodegree.jrobbins.popularmovies.app.data.MoviesProvider.MOVIES;
 import static com.android.nanodegree.jrobbins.popularmovies.app.data.MoviesProvider.MOVIES_LIST_FILTER;
 import static com.android.nanodegree.jrobbins.popularmovies.app.data.MoviesProvider.MOVIES_MOVIE_ID;
-import static com.android.nanodegree.jrobbins.popularmovies.app.data.MoviesProvider.MOVIES;
 import static com.android.nanodegree.jrobbins.popularmovies.app.data.MoviesProvider.MOVIE_FAVORITES_LIST;
 import static com.android.nanodegree.jrobbins.popularmovies.app.data.MoviesProvider.MOVIE_FAVORITE_ID;
 

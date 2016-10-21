@@ -6,4 +6,35 @@
 
     </style>
 
+    <style name="HorizontalBar">
+        <item name="android:layout_height">@dimen/divider_thickness</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:background">@color/dark_gray</item>
+    </style>
+
+    <style name="ListItemLayout">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">@dimen/spacing_tiny</item>
+        <item name="android:layout_marginLeft">@dimen/spacing_normal</item>
+        <item name="android:layout_marginRight">@dimen/spacing_normal</item>
+        <item name="android:layout_marginBottom">@dimen/spacing_tiny</item>
+    </style>
+
+    <style name="ListItemMovieLayoutTrailers" parent="ListItemLayout">
+        <item name="android:gravity">center</item>
+    </style>
+
+    <style name="ListItemMovieLayoutTrailersName">
+        <item name="android:textSize">@dimen/font_medium</item>
+    </style>
+
+    <style name="ListItemMovieReviewAuthor">
+        <item name="android:textSize">@dimen/font_normal</item>
+        <item name="android:textStyle">normal|bold|italic</item>
+    </style>
+
+    <style name="ListItemMovieReview">
+        <item name="android:textSize">@dimen/font_small</item>
+    </style>
 </resources>

@@ -26,9 +26,8 @@ import android.net.Uri;
 import android.test.AndroidTestCase;
 import android.util.Log;
 
-import com.android.nanodegree.jrobbins.popularmovies.app.data.MoviesContract.MovieEntry;
-import com.android.nanodegree.jrobbins.popularmovies.app.data.MoviesContract.MovieListsEntry;
 import com.android.nanodegree.jrobbins.popularmovies.app.data.MoviesContract.FavoritesEntry;
+import com.android.nanodegree.jrobbins.popularmovies.app.data.MoviesContract.MovieEntry;
 
 public class TestProvider extends AndroidTestCase {
 

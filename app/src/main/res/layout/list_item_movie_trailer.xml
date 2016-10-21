@@ -1,31 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="horizontal" 
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_marginTop="4dp"
-    android:layout_marginBottom="4dp"
-    android:layout_marginLeft="16dp"
-    android:layout_marginRight="16dp"
-    android:gravity="center"
     android:id="@+id/list_item_trailer_layout"
-    >
+    style="@style/ListItemLayout"
+    android:gravity="center"
+    android:orientation="horizontal">
 
     <ImageView
         android:id="@+id/list_item_trailer_icon"
-        android:layout_width="0px"
+        android:layout_width="@dimen/layout_weight_width"
+        android:layout_height="@dimen/trailer_list_image_height"
         android:layout_weight="1"
-        android:layout_height="48dp"
-        android:src="@drawable/trailer"
-        />
+        android:src="@drawable/trailer" />
 
     <TextView
         android:id="@+id/list_item_trailer_name"
-        android:layout_width="0px"
-        android:layout_weight="5"
+        style="@style/ListItemMovieLayoutTrailersName"
+        android:layout_width="@dimen/layout_weight_width"
         android:layout_height="wrap_content"
-        tools:text="Trailer 1"
-        android:textSize="16dp"
-        />
+        android:layout_weight="5"
+        tools:text="Trailer 1" />
 </LinearLayout>

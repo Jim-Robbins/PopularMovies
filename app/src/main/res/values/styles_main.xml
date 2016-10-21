@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="GridViewLayout">
+        <item name="android:columnWidth">@dimen/grid_view_column_width</item>
+        <item name="android:horizontalSpacing">@dimen/grid_view_spacing</item>
+        <item name="android:verticalSpacing">@dimen/grid_view_spacing</item>
+        <item name="android:numColumns">auto_fit</item>
+    </style>
+
+    <style name="TwoPaneLayout">
+        <item name="android:baselineAligned">false</item>
+        <item name="android:divider">?attr/dividerHorizontal</item>
+    </style>
+
+    <style name="GridItemImage">
+        <item name="android:minHeight">@dimen/grid_view_image_height</item>
+        <item name="android:scaleType">centerCrop</item>
+    </style>
+</resources>

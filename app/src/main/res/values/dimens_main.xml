@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="grid_view_column_width">180dp</dimen>
+    <dimen name="grid_view_image_height">270dp</dimen>
+    <dimen name="grid_view_image_width">@dimen/grid_view_column_width</dimen>
+    <dimen name="grid_view_spacing">@dimen/spacing_none</dimen>
+</resources>

@@ -4,7 +4,9 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import com.android.nanodegree.jrobbins.popularmovies.app.data.MoviesContract.*;
+import com.android.nanodegree.jrobbins.popularmovies.app.data.MoviesContract.FavoritesEntry;
+import com.android.nanodegree.jrobbins.popularmovies.app.data.MoviesContract.MovieEntry;
+import com.android.nanodegree.jrobbins.popularmovies.app.data.MoviesContract.MovieListsEntry;
 
 /**
  * Created by jim.robbins on 9/29/16.
