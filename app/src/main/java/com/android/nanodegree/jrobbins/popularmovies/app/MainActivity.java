@@ -12,6 +12,7 @@ import com.android.nanodegree.jrobbins.popularmovies.app.fragments.DetailFragmen
 import com.android.nanodegree.jrobbins.popularmovies.app.fragments.MovieFragment;
 import com.android.nanodegree.jrobbins.popularmovies.app.utils.Utility;
 import com.facebook.stetho.Stetho;
+import com.squareup.leakcanary.LeakCanary;
 
 public class MainActivity extends AppCompatActivity implements MovieFragment.Callback {
 
@@ -24,6 +25,13 @@ public class MainActivity extends AppCompatActivity implements MovieFragment.Cal
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (LeakCanary.isInAnalyzerProcess(this)) {
+            // This process is dedicated to LeakCanary for heap analysis.
+            // You should not init your app in this process.
+            return;
+        }
+        LeakCanary.install(this.getApplication());
+
         Stetho.initializeWithDefaults(this);
 
         mSortBy = Utility.getPreferredMovieList(this);
